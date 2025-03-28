@@ -1,8 +1,12 @@
+
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ShieldAlert } from "lucide-react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 
 export default function AccessPage() {
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-8 max-w-md w-full mx-4">
@@ -10,7 +14,7 @@ export default function AccessPage() {
           <div className="flex justify-center">
             <ShieldAlert className="w-16 h-16 text-red-500" />
           </div>
-          
+
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Authentication Required
@@ -26,9 +30,12 @@ export default function AccessPage() {
                 Sign In
               </Button>
             </Link>
-            
+
             <Link href="/">
-              <Button variant="outline" className="w-full border-gray-200 dark:border-gray-700 dark:text-gray-300">
+              <Button
+                variant="outline"
+                className="w-full border-gray-200 dark:border-gray-700 dark:text-gray-300"
+              >
                 Back to Home
               </Button>
             </Link>

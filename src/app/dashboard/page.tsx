@@ -44,7 +44,7 @@ const DashboardPage = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
           <Link href={stat.href} key={stat.title}>
-            <div className="relative overflow-hidden rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-[1.02] cursor-pointer">
+            <div className="relative overflow-hidden rounded-lg border border-gray-200  dark:bg-gray-900 p-6 hover:shadow-lg transition-all duration-200 ease-in-out hover:scale-[1.02] cursor-pointer">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">{stat.title}</p>

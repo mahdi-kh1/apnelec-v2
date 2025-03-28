@@ -1,18 +1,20 @@
 "use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { 
-  HomeIcon, 
-  SunIcon, 
-  BatteryChargingIcon, 
-  WrenchIcon, 
-  UserIcon, 
-  PhoneIcon, 
+import {
+  HomeIcon,
+  SunIcon,
+  BatteryChargingIcon,
+  WrenchIcon,
+  UserIcon,
+  PhoneIcon,
   BookOpenIcon,
-  X 
-} from 'lucide-react';
+  X,
+  Users,
+  FileText,
+} from "lucide-react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -26,13 +28,25 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
   const menuItems = [
     { id: 1, name: "Dashboard", href: "/dashboard", icon: HomeIcon },
     { id: 2, name: "Solar Solutions", href: "/dashboard/solar", icon: SunIcon },
-    { id: 3, name: "EV Solutions", href: "/dashboard/ev", icon: BatteryChargingIcon },
+    {
+      id: 3,
+      name: "EV Solutions",
+      href: "/dashboard/ev",
+      icon: BatteryChargingIcon,
+    },
     { id: 4, name: "Services", href: "/dashboard/services", icon: WrenchIcon },
-    ...(isAdmin ? [
-      { id: 5, name: "Users", href: "/dashboard/users", icon: UserIcon },
-    ] : []),
+    ...(isAdmin
+      ? [{ id: 5, name: "Users", href: "/dashboard/users", icon: UserIcon }]
+      : []),
     { id: 6, name: "Support", href: "/dashboard/support", icon: PhoneIcon },
-    { id: 7, name: "Documentation", href: "/dashboard/docs", icon: BookOpenIcon },
+    {
+      id: 7,
+      name: "Documentation",
+      href: "/dashboard/docs",
+      icon: BookOpenIcon,
+    },
+    { id: 8, name: "Users", href: "/dashboard/users", icon: Users },
+    { id: 9, name: "Blogs", href: "/dashboard/blogs", icon: FileText },
   ];
 
   return (
@@ -49,7 +63,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         }`}
       >
         <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Dashboard</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            Dashboard
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg lg:hidden"

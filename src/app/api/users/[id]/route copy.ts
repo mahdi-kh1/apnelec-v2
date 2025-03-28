@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
-  context: { params: Promise<{ id: string }> } // تغییر تایپ params
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,14 +13,8 @@ export async function GET(
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { id } = await context.params; // استفاده از await
-
-    if (!id) {
-      return new NextResponse("Invalid ID", { status: 400 });
-    }
-
     const user = await db.user.findUnique({
-      where: { id },
+      where: { id: params.id },
       select: {
         id: true,
         firstName: true,
@@ -42,25 +36,19 @@ export async function GET(
     );
   }
 }
+
 export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  request: Request,
+  { params }: { params: { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-
-    const { id } = await context.params; // اضافه کردن await
-
-    if (!id) {
-      return new NextResponse("Invalid ID", { status: 400 });
-    }
-
     const body = await request.json();
     const user = await db.user.update({
-      where: { id },
+      where: { id: params.id },
       data: {
         firstName: body.firstName,
         lastName: body.lastName,
@@ -78,11 +66,11 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  req: NextRequest,
+  { params }: { params: { id: string } }
 ) {
   try {
-    const { id } = await context.params; // اضافه کردن await
+    const { id } = params;
 
     if (!id) {
       return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
