@@ -26,11 +26,22 @@ const UsersPageContent = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log("Fetching users...");
       const response = await fetch("/api/users");
+      console.log("Response status:", response.status);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error response:", errorData);
+        throw new Error(errorData.error || "Failed to fetch users");
+      }
+      
       const data = await response.json();
-      setUsers(data);
+      console.log("Received users data:", data);
+      setUsers(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Failed to fetch users:", error);
+      setUsers([]);
     }
   };
 
@@ -165,8 +176,8 @@ const UsersPageContent = () => {
 
 export default function UsersPage() {
   return (
-    <UsersPageContent />
-    // <AdminRoute>
-    // </AdminRoute>
+    <AdminRoute>
+      <UsersPageContent />
+    </AdminRoute>
   );
 }

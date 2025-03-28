@@ -118,3 +118,8 @@ body {
 .animate-fadeIn {
   animation: fadeIn 0.5s ease-out;
 }
+
+
+.h-screen {
+  height: 112vh;
+}  
