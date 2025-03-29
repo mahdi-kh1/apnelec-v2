@@ -1,49 +1,98 @@
-// pages/api/blogs/[id].ts
-import { NextApiRequest, NextApiResponse } from "next";
-import { PrismaClient } from "@prisma/client";
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/lib/db"; // فایل Prisma
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth"; // تنظیمات احراز هویت
 
-const prisma = new PrismaClient();
+// دریافت یک بلاگ خاص
+export async function GET(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { id } = context.params;  // استخراج id از params به صورت مستقیم
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { id } = req.query;
+  const blogId = Number(id);
 
-  if (req.method === "GET") {
-    try {
-      const blog = await prisma.blog.findUnique({
-        where: { id: Number(id) },
-        include: { author: true },
-      });
+  if (isNaN(blogId)) {
+    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+  }
 
-      if (!blog) {
-        return res.status(404).json({ error: "Blog not found" });
-      }
+  try {
+    const blog = await db.blog.findUnique({
+      where: { id: blogId },
+      include: { author: true },
+    });
 
-      res.status(200).json(blog);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to fetch blog" });
+    if (!blog) {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-  } else if (req.method === "PUT") {
-    try {
-      const { title, content } = req.body;
-      const updatedBlog = await prisma.blog.update({
-        where: { id: Number(id) },
-        data: { title, content },
-      });
 
-      res.status(200).json(updatedBlog);
-    } catch (error) {
-      res.status(500).json({ error: "Failed to update blog" });
+    return NextResponse.json(blog);
+  } catch (error) {
+    console.error("Database error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+// ویرایش بلاگ
+export async function PUT(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = context.params;  // استخراج id از params به صورت مستقیم
+
+  const blogId = Number(id);
+  if (isNaN(blogId)) {
+    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+  }
+
+  try {
+    const { title, content } = await request.json();
+
+    const updatedBlog = await db.blog.update({
+      where: { id: blogId },
+      data: { title, content },
+    });
+
+    return NextResponse.json(updatedBlog);
+  } catch (error: any) {
+    if (error.code === "P2025") {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-  } else if (req.method === "DELETE") {
-    try {
-      await prisma.blog.delete({
-        where: { id: Number(id) },
-      });
-      res.status(200).json({ message: "Blog deleted successfully" });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to delete blog" });
+    console.error("Database error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+// حذف بلاگ
+export async function DELETE(
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id } = context.params;  // استخراج id از params به صورت مستقیم
+
+  const blogId = Number(id);
+  if (isNaN(blogId)) {
+    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+  }
+
+  try {
+    await db.blog.delete({ where: { id: blogId } });
+    return NextResponse.json({ message: "Blog deleted successfully" });
+  } catch (error: any) {
+    if (error.code === "P2025") {
+      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-  } else {
-    res.status(405).json({ error: "Method not allowed" });
+    console.error("Database error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

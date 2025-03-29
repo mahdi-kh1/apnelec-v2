@@ -11,10 +11,11 @@ import { toast } from "react-hot-toast";
 import { useRouter } from "next/navigation";
 
 interface Blog {
-  id: string;
+  id: number;
   createdAt: string;
   title: string;
   author: string;
+  authorId: string;
 }
 
 export default function BlogPageContent() {
@@ -22,7 +23,7 @@ export default function BlogPageContent() {
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
-
+  
   const fetchBlogs = async () => {
     try {
       const response = await fetch("/api/blogs");
@@ -36,18 +37,18 @@ export default function BlogPageContent() {
     fetchBlogs();
   }, []);
 
-  const handleDelete = async (e: React.FormEvent, id: string) => {
+  const handleDelete = async (e: React.FormEvent, id: number) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/Blogs/${id}`, {
+      const response = await fetch(`/api/blogs/${id}`, {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
       });
 
       if (response.ok) {
-        toast.success("User deleted successfully");
+        toast.success("Blog deleted successfully");
         setOpen(false); // بستن دیالوگ بعد از حذف موفق
         router.push("/dashboard/blogs");
       } else {
@@ -94,67 +95,71 @@ export default function BlogPageContent() {
             </tr>
           </thead>
           <tbody>
-            {blogs.map((blog) => (
-              <tr key={blog.id} className="border-b dark:border-gray-700">
-                <td className="p-4 text-gray-900 dark:text-gray-300">
-                  {blog.title}
-                </td>
-                <td className="p-4 text-gray-900 dark:text-gray-300">
-                  {blog.author}
-                </td>
-                <td className="p-4 text-gray-900 dark:text-gray-300">
-                  {new Date(blog.createdAt).toLocaleDateString()}
-                </td>
-                <td className="p-4">
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => router.push(`/dashboard/blogs/${blog.id}`)}
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    <Dialog.Root open={open} onOpenChange={setOpen}>
-                      <Dialog.Trigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Trash2 className="w-4 h-4 text-red-500" />
-                        </Button>
-                      </Dialog.Trigger>
-                      <Dialog.Portal>
-                        <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-50" />
-                        <Dialog.Content className="w-1/2 h-fit fixed inset-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-                          <Dialog.Title className="text-lg text-gray-950 dark:text-white font-semibold">
-                            Are you sure to delete {`${blog.title}`}
-                          </Dialog.Title>
-                          <Dialog.Description className="mt-2 text-gray-500">
-                            This action is irreversible. Do you want to delete
-                            this blog?
-                          </Dialog.Description>
-                          <div className="mt-4 flex justify-end gap-2">
-                            <Dialog.Close asChild>
+            {blogs.map((blog) => {
+              return (
+                <tr key={blog.id} className="border-b dark:border-gray-700">
+                  <td className="p-4 text-gray-900 dark:text-gray-300">
+                    {blog.title}
+                  </td>
+                  <td className="p-4 text-gray-900 dark:text-gray-300">
+                    {blog.authorId}
+                  </td>
+                  <td className="p-4 text-gray-900 dark:text-gray-300">
+                    {new Date(blog.createdAt).toLocaleDateString()}
+                  </td>
+                  <td className="p-4">
+                    <div className="flex gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          router.push(`/dashboard/blogs/${blog.id}`)
+                        }
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Dialog.Root open={open} onOpenChange={setOpen}>
+                        <Dialog.Trigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="w-4 h-4 text-red-500" />
+                          </Button>
+                        </Dialog.Trigger>
+                        <Dialog.Portal>
+                          <Dialog.Overlay className="fixed inset-0 bg-black bg-opacity-50" />
+                          <Dialog.Content className="w-1/2 h-fit fixed inset-1/2 -translate-x-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+                            <Dialog.Title className="text-lg text-gray-950 dark:text-white font-semibold">
+                              Are you sure to delete {`${blog.title}`}
+                            </Dialog.Title>
+                            <Dialog.Description className="mt-2 text-gray-500">
+                              This action is irreversible. Do you want to delete
+                              this blog?
+                            </Dialog.Description>
+                            <div className="mt-4 flex justify-end gap-2">
+                              <Dialog.Close asChild>
+                                <Button
+                                  className="text-gray-950 dark:text-white"
+                                  variant="outline"
+                                  disabled={loading}
+                                >
+                                  Cancel
+                                </Button>
+                              </Dialog.Close>
                               <Button
-                                className="text-gray-950 dark:text-white"
-                                variant="outline"
+                                variant="destructive"
+                                onClick={(e) => handleDelete(e, blog.id)}
                                 disabled={loading}
                               >
-                                Cancel
+                                {loading ? "Deleting..." : "Delete"}
                               </Button>
-                            </Dialog.Close>
-                            <Button
-                              variant="destructive"
-                              onClick={(e) => handleDelete(e, blog.id)}
-                              disabled={loading}
-                            >
-                              {loading ? "Deleting..." : "Delete"}
-                            </Button>
-                          </div>
-                        </Dialog.Content>
-                      </Dialog.Portal>
-                    </Dialog.Root>
-                  </div>
-                </td>
-              </tr>
-            ))}
+                            </div>
+                          </Dialog.Content>
+                        </Dialog.Portal>
+                      </Dialog.Root>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
