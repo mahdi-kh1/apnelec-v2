@@ -5,52 +5,60 @@ import { authOptions } from "@/lib/auth"; // تنظیمات احراز هویت
 
 // دریافت یک بلاگ خاص
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } }
+  request: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = context.params;  // استخراج id از params به صورت مستقیم
-
-  const blogId = Number(id);
-
-  if (isNaN(blogId)) {
-    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
-  }
-
   try {
+    const { id } = await context.params;
+    const blogId = parseInt(id, 10);
+    
+    if (isNaN(blogId)) {
+      return NextResponse.json(
+        { error: "Invalid blog ID" },
+        { status: 400 }
+      );
+    }
+    
     const blog = await db.blog.findUnique({
       where: { id: blogId },
       include: { author: true },
     });
-
+    
     if (!blog) {
-      return NextResponse.json({ error: "Blog not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Blog not found" },
+        { status: 404 }
+      );
     }
-
+    
     return NextResponse.json(blog);
   } catch (error) {
-    console.error("Database error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    console.error("Error fetching blog:", error);
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
 
 // ویرایش بلاگ
 export async function PUT(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { id } = context.params;  // استخراج id از params به صورت مستقیم
-
-  const blogId = Number(id);
-  if (isNaN(blogId)) {
-    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+
+    const blogId = Number(id);
+    if (isNaN(blogId)) {
+      return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+    }
+
     const { title, content } = await request.json();
 
     const updatedBlog = await db.blog.update({
@@ -71,21 +79,21 @@ export async function PUT(
 // حذف بلاگ
 export async function DELETE(
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const session = await getServerSession(authOptions);
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { id } = context.params;  // استخراج id از params به صورت مستقیم
-
-  const blogId = Number(id);
-  if (isNaN(blogId)) {
-    return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
-  }
-
   try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { id } = await context.params;
+
+    const blogId = Number(id);
+    if (isNaN(blogId)) {
+      return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
+    }
+
     await db.blog.delete({ where: { id: blogId } });
     return NextResponse.json({ message: "Blog deleted successfully" });
   } catch (error: any) {

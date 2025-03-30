@@ -5,10 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react"; 
 import { Sun, Moon, ChevronDown, Menu, X } from "lucide-react";
-import LineMdMoonTwotoneAltLoop from "../../public/icons/LineMdMoonTwotoneAltLoop";
-import LineMdSunRisingTwotoneLoop from "../../public/icons/LineMdSunRisingTwotoneLoop";
-import UserMenu from "./UserMenu";
-import ThemeToggle from "./ThemeToggle";
+import LineMdMoonTwotoneAltLoop from "../../../public/icons/LineMdMoonTwotoneAltLoop";
+import LineMdSunRisingTwotoneLoop from "../../../public/icons/LineMdSunRisingTwotoneLoop";
+import UserMenu from "../UserMenu";
+import ThemeToggle from "../ThemeToggle";
 
 const Navbar = () => {
   const { theme, toggleTheme } = useTheme();

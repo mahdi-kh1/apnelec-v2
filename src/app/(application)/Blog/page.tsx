@@ -1,48 +1,56 @@
-import React from "react";
-import Image from "next/image";
+import { Metadata } from "next";
+import { Suspense } from "react";
+import BlogList from "@/components/blog/BlogList";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const Blog: React.FC = () => {
+export const metadata: Metadata = {
+  title: "Blog | Your Brand",
+  description: "Discover the latest insights, tutorials, and updates from our team",
+  openGraph: {
+    title: "Blog | Your Brand",
+    description: "Discover the latest insights, tutorials, and updates from our team",
+    images: [{ url: "/images/og-blog.jpg" }],
+  },
+  alternates: {
+    canonical: "/blog",
+  },
+};
+
+function BlogSkeleton() {
   return (
-    <div className="container mx-auto px-10">
-      <div className="flex flex-row">
-        <div className="px-2 basis-3/12 max-w-full">
-          <Image src={"/amir-apnelec.jpg"} alt="about-solar" width={500} height={300} />
-        </div>
-        <div className="px-2 basis-9/12 max-w-full">
-          <div>
-            <h2>WHAT IS SOLAR ENERGY?</h2>
-
-            <p>
-              The world needs to transition to clean energy in order to avoid
-              global heating and climate change. Solar PV will contribute to the
-              UK’s climate change objectives and help us reduce our dependence
-              on fossil fuels.
-            </p>
-
-            <p>
-              Solar energy technologies convert sunlight into energy. This is
-              converted to electricity in the case of solar PV.
-            </p>
-
-            <h2>HOW DOES SOLAR PV WORK?</h2>
-
-            <p>
-              Solar PV is a method of generating electric power by using solar
-              cells to convert energy from the sun by photovoltaic effect. These
-              solar cells are assembled into solar panels and then installed on
-              rooftops (flat or pitched) or on the ground. When the sunlight
-              shines on the panels, it creates an electric field across the
-              layers. The stronger the sunshine the more electricity is
-              produced. The cells don’t need direct sunlight to
-              work&nbsp;and&nbsp;can&nbsp;even&nbsp;work on&nbsp;cloudy days.
-            </p>
-
-            <p>&nbsp;</p>
-          </div>
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <Skeleton className="h-12 w-full" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="space-y-4">
+              <Skeleton className="h-48 w-full" />
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </div>
+          ))}
         </div>
       </div>
     </div>
   );
-};
+}
 
-export default Blog;
+export default function BlogPage() {
+  return (
+    <div className="container mx-auto px-4 py-12 max-w-6xl">
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-4">
+          Our Blog
+        </h1>
+        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          Discover insights, tutorials, and updates about solar energy and electrical services
+        </p>
+      </div>
+      
+      <Suspense fallback={<BlogSkeleton />}>
+        <BlogList />
+      </Suspense>
+    </div>
+  );
+}

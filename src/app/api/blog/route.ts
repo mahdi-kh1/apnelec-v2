@@ -8,7 +8,7 @@ const blogPostSchema = z.object({
   authorId: z.string().min(1, "Author is required"),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<NextResponse> {
   try {
     const body = await req.json();
     const { title, content, authorId } = blogPostSchema.parse(body);

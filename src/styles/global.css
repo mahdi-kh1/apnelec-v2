@@ -120,6 +120,6 @@ body {
 }
 
 
-.h-screen {
+.relative.w-full.h-screen {
   height: 112vh;
-}  
+}

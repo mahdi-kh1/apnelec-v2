@@ -17,6 +17,10 @@ type User = {
     isAdmin: boolean;
 }
 
+if (!process.env.NEXTAUTH_URL) {
+  console.warn('NEXTAUTH_URL environment variable is not set');
+}
+
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(db),
     secret: process.env.SECRET,
