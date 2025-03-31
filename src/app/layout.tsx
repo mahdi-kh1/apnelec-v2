@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     template: '%s | APN Elec',
     default: 'APN Elec',
   },
-  description: 'Your brand description goes here',
+  description: 'APN Elec is a local business specialising in Solar PV installation and battery storage. Solar power solutions. DOMESTIC ELECTRICAL SERVICES',
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
 };
 

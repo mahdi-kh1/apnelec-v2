@@ -2,10 +2,10 @@ import SignUpForm from "@/components/form/SignUpForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create an Account | Your Brand",
+  title: "Create an Account",
   description: "Join our community by creating a new account. Get access to exclusive features and content.",
   openGraph: {
-    title: "Create an Account | Your Brand",
+    title: "Create an Account",
     description: "Join our community by creating a new account. Get access to exclusive features and content.",
     images: [{ url: "/images/og-signup.jpg" }],
   },

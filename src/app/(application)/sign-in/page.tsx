@@ -2,10 +2,10 @@ import SignInForm from "@/components/form/SignInForm";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sign In | Your Brand",
+  title: "Sign In",
   description: "Sign in to your account to access personalized features and content.",
   openGraph: {
-    title: "Sign In | Your Brand",
+    title: "Sign In",
     description: "Sign in to your account to access personalized features and content.",
     images: [{ url: "/images/og-signin.jpg" }],
   },

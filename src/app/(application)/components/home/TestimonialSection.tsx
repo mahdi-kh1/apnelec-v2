@@ -2,19 +2,19 @@ import Image from "next/image";
 
 const testimonials = [
   {
-    quote: "Working with Your Brand transformed our business operations. They&apos;re amazing!",
+    quote: "Working with Apn Elec transformed our business operations. They&apos;re amazing!",
     author: "Sarah Johnson",
     title: "CEO, TechCorp",
     image: "/images/testimonials/testimonial-1.jpg"
   },
   {
-    quote: "The team at &quot;Your Brand&quot; provided exceptional support throughout our digital transformation journey.",
+    quote: "The team at &quot;Apn Elec&quot; provided exceptional support throughout our digital transformation journey.",
     author: "Michael Chen",
     title: "CTO, InnovateCo",
     image: "/images/testimonials/testimonial-2.jpg"
   },
   {
-    quote: "Your Brand's solutions are intuitive, powerful, and backed by a team that truly cares about our success.",
+    quote: "Apn Elec's solutions are intuitive, powerful, and backed by a team that truly cares about our success.",
     author: "Emily Rodriguez",
     title: "Operations Director, GlobalFirm",
     image: "/images/testimonials/testimonial-3.jpg"
