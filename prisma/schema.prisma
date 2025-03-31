@@ -1,29 +1,13 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
-// model User {
-//   id        Int      @id @default(autoincrement())
-//   firstName String?
-//   lastName  String?
-//   username  String @unique //email
-//   mobile    String @unique
-//   password  String
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   blogs     Blog[]   @relation("UserBlogs")
-// }
 
 model Account {
   id                String  @id @default(cuid())
@@ -87,11 +71,17 @@ model VerificationToken {
 
 
 model Blog {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  title     String   @db.VarChar(255)
-  content   String?
-  author    User     @relation(fields: [authorId], references: [id], name: "UserBlogs")
-  authorId  String
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  title       String    @db.VarChar(255)
+  content     String?
+  excerpt     String?   @db.VarChar(500)
+  imagePath   String?   
+  published   Boolean   @default(false)
+  featured    Boolean   @default(false)
+  tags        String?   
+  readTime    Int?      @default(5)
+  author      User      @relation(fields: [authorId], references: [id], name: "UserBlogs")
+  authorId    String
 }

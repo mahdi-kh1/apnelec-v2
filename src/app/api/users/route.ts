@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
@@ -12,7 +12,7 @@ export async function GET() {
         }
 
         console.log("Fetching users from database...");
-        const users = await prisma.user.findMany({
+        const users = await db.user.findMany({
             select: {
                 id: true,
                 firstName: true,

@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db"; // فایل Prisma
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth"; // تنظیمات احراز هویت
+import { v4 as uuidv4 } from "uuid";
+import path from "path";
+import { writeFile } from "fs/promises";
+import fs from "fs/promises";
+
+// Ensure upload directory exists
+async function ensureDirectoryExists(dirPath: string) {
+  try {
+    await fs.access(dirPath);
+  } catch (error) {
+    await fs.mkdir(dirPath, { recursive: true });
+  }
+}
 
 // دریافت یک بلاگ خاص
 export async function GET(
@@ -53,17 +66,60 @@ export async function PUT(
     }
 
     const { id } = await context.params;
-
     const blogId = Number(id);
+    
     if (isNaN(blogId)) {
       return NextResponse.json({ error: "Invalid blog ID" }, { status: 400 });
     }
 
-    const { title, content } = await request.json();
+    // Handle form data for file uploads
+    const formData = await request.formData();
+    const title = formData.get("title") as string;
+    const content = formData.get("content") as string;
+    const excerpt = formData.get("excerpt") as string;
+    const tags = formData.get("tags") as string;
+    const readTime = parseInt(formData.get("readTime") as string) || 5;
+    const featured = formData.get("featured") === "true";
+    const published = formData.get("published") === "true";
+    
+    // Handle image upload
+    const imageFile = formData.get("image") as File;
+    let imagePath = undefined; // undefined means don't update
+    
+    if (imageFile && imageFile.size > 0) {
+      const fileExtension = imageFile.name.split('.').pop();
+      const fileName = `${uuidv4()}.${fileExtension}`;
+      const uploadDir = path.join(process.cwd(), 'public/uploads/blog');
+      const filePath = `/uploads/blog/${fileName}`;
+      
+      // Ensure directory exists
+      await ensureDirectoryExists(uploadDir);
+      
+      const buffer = Buffer.from(await imageFile.arrayBuffer());
+      await writeFile(path.join(process.cwd(), 'public', filePath), buffer);
+      
+      imagePath = filePath;
+    }
+    
+    // Update data object
+    const updateData: any = {
+      title,
+      content,
+      excerpt,
+      tags,
+      readTime,
+      featured,
+      published,
+    };
+    
+    // Only include imagePath if a new image was uploaded
+    if (imagePath) {
+      updateData.imagePath = imagePath;
+    }
 
     const updatedBlog = await db.blog.update({
       where: { id: blogId },
-      data: { title, content },
+      data: updateData,
     });
 
     return NextResponse.json(updatedBlog);

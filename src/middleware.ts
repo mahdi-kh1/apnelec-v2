@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import type { NextRequest } from 'next/server'
+import { withAuth } from "next-auth/middleware";
 
 // Paths that require authentication
 const protectedPaths = [
@@ -47,6 +48,25 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
+export default withAuth(
+  function middleware(req) {
+    const token = req.nextauth.token;
+    const isAdminRoute = req.nextUrl.pathname.startsWith('/dashboard/blogs') || 
+                        req.nextUrl.pathname.startsWith('/dashboard/users');
+
+    if (isAdminRoute && !token?.isAdmin) {
+      return NextResponse.redirect(new URL('/dashboard/403', req.url));
+    }
+
+    return NextResponse.next();
+  },
+  {
+    callbacks: {
+      authorized: ({ token }) => !!token
+    },
+  }
+);
+
 // Configure which paths the middleware runs on
 export const config = {
   matcher: [
@@ -59,5 +79,6 @@ export const config = {
      * - public folder
      */
     "/((?!api|_next/static|_next/image|favicon.ico|images|fonts).*)",
+    "/dashboard/:path*",
   ],
 }

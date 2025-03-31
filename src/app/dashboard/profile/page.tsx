@@ -9,13 +9,28 @@ import { toast } from "react-hot-toast";
 import type { UserProfile, UpdateUserProfile } from "@/types/next-auth";
 import PasswordForm from "@/components/form/PasswordForm";
 
+interface ExtendedSession {
+    user: {
+        id: string;
+        username: string;
+        name: string;
+        mobile: string;
+        firstName: string;
+        lastName: string;
+        isAdmin: boolean;
+        email?: string | null;
+        image?: string | null;
+    };
+}
+
 export default function ProfilePage() {
     const { data: session, update } = useSession();
+    const user = (session as ExtendedSession | null)?.user;
     const [isEditing, setIsEditing] = useState(false);
     const [profileData, setProfileData] = useState<Partial<UpdateUserProfile>>({
-        firstName: session?.user?.firstName || '',
-        lastName: session?.user?.lastName || '',
-        mobile: session?.user?.mobile || '',
+        firstName: user?.firstName || '',
+        lastName: user?.lastName || '',
+        mobile: user?.mobile || '',
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +45,7 @@ export default function ProfilePage() {
             });
 
             if (response.ok) {
-                await update(); // Update the session data
+                await update();
                 toast.success('Profile updated successfully');
                 setIsEditing(false);
             } else {
@@ -85,7 +100,7 @@ export default function ProfilePage() {
                         <Input
                             id="email"
                             type="email"
-                            value={session?.user?.username || ''}
+                            value={user?.username || ''}
                             readOnly
                             className="bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
                         />

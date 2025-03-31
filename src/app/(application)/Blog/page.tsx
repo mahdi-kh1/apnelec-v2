@@ -4,10 +4,10 @@ import BlogList from "@/components/blog/BlogList";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
-  title: "Blog | Your Brand",
+  title: "Blog",
   description: "Discover the latest insights, tutorials, and updates from our team",
   openGraph: {
-    title: "Blog | Your Brand",
+    title: "Blog ",
     description: "Discover the latest insights, tutorials, and updates from our team",
     images: [{ url: "/images/og-blog.jpg" }],
   },

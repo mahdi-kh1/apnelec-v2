@@ -35,9 +35,6 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       icon: BatteryChargingIcon,
     },
     { id: 4, name: "Services", href: "/dashboard/services", icon: WrenchIcon },
-    ...(isAdmin
-      ? [{ id: 5, name: "Users", href: "/dashboard/users", icon: UserIcon }]
-      : []),
     { id: 6, name: "Support", href: "/dashboard/support", icon: PhoneIcon },
     {
       id: 7,
@@ -45,9 +42,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       href: "/dashboard/docs",
       icon: BookOpenIcon,
     },
+  ];
+
+  const adminMenuItems = [
     { id: 8, name: "Users", href: "/dashboard/users", icon: Users },
     { id: 9, name: "Blogs", href: "/dashboard/blogs", icon: FileText },
   ];
+
+  const allMenuItems = isAdmin ? [...menuItems, ...adminMenuItems] : menuItems;
 
   return (
     <>
@@ -74,7 +76,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </button>
         </div>
         <nav className="p-4 space-y-1">
-          {menuItems.map((item) => (
+          {allMenuItems.map((item) => (
             <Link
               key={item.id}
               href={item.href}

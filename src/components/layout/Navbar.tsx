@@ -22,7 +22,7 @@ const Navbar = () => {
   }, []);
 
   const menuItems = [
-    { id: 1, name: "Home", href: "/", disabled: false },
+    { id: 1, name: "Home", href: "/", disabled: true },
     {
       id: 2,
       name: "Solar solutions",

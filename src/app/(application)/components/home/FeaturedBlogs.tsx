@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Calendar, User, ArrowRight } from "lucide-react";
+import { Calendar, ArrowRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 type Blog = {
   id: number;
@@ -16,6 +17,29 @@ type Blog = {
     name: string | null;
     image?: string | null;
   };
+  imagePath?: string | null;
+};
+
+const container = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const item = {
+  hidden: { opacity: 0, y: 30 },
+  show: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut"
+    }
+  }
 };
 
 export default function FeaturedBlogs() {
@@ -25,9 +49,23 @@ export default function FeaturedBlogs() {
   useEffect(() => {
     const fetchFeaturedBlogs = async () => {
       try {
-        const response = await fetch("/api/blogs?featured=true&limit=3");
-        if (!response.ok) throw new Error("Failed to fetch blogs");
+        const response = await fetch("/api/blogs?featured=true&limit=3", {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache'
+          },
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch blogs: ${response.status}`);
+        }
+        
         const data = await response.json();
+        if (!Array.isArray(data)) {
+          throw new Error('Invalid response format');
+        }
+        
         setBlogs(data);
       } catch (error) {
         console.error("Error fetching featured blogs:", error);
@@ -42,7 +80,7 @@ export default function FeaturedBlogs() {
   // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat("en-US", {
+    return new Intl.DateTimeFormat("en-GB", {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -56,31 +94,17 @@ export default function FeaturedBlogs() {
     return `${content.substring(0, maxLength)}...`;
   };
 
-  // Get blog image based on ID
-  const getBlogImage = (id: number) => {
-    // Use modulo to cycle through available images (assuming you have blog-1.jpg through blog-6.jpg)
-    const imageIndex = (id % 6) + 1;
-    return `/images/blog/blog-${imageIndex}.jpg`;
-  };
-
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-            <Skeleton className="w-full h-48" />
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden">
+            <Skeleton className="h-48 w-full" />
             <div className="p-6 space-y-4">
               <Skeleton className="h-6 w-3/4" />
               <Skeleton className="h-4 w-full" />
-              <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-2/3" />
-              <div className="flex items-center pt-4">
-                <Skeleton className="h-10 w-10 rounded-full mr-3" />
-                <div>
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-3 w-32 mt-1" />
-                </div>
-              </div>
+              <Skeleton className="h-4 w-1/3" />
             </div>
           </div>
         ))}
@@ -88,22 +112,42 @@ export default function FeaturedBlogs() {
     );
   }
 
+  if (blogs.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-lg text-gray-600 dark:text-gray-400">No featured blog posts available.</p>
+        <Link 
+          href="/Blog" 
+          className="inline-flex items-center px-6 py-3 mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-all duration-300 transform hover:-translate-y-1"
+        >
+          Browse all posts
+          <ArrowRight className="ml-2 h-5 w-5" />
+        </Link>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {blogs.length > 0 ? (
-        blogs.map((blog) => (
+    <motion.div 
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="grid grid-cols-1 md:grid-cols-3 gap-8"
+    >
+      {blogs.map((blog) => (
+        <motion.div key={blog.id} variants={item} className="h-full">
           <Link 
-            href={`/blog/${blog.id}`} 
-            key={blog.id}
-            className="group"
+            href={`/Blog/${blog.id.toString()}`}
+            className="group block h-full"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden h-full transition-all duration-200 hover:shadow-md">
-              <div className="relative h-48 w-full bg-gray-200 dark:bg-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
+              <div className="relative h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
                 <Image
-                  src={getBlogImage(blog.id)}
+                  src={blog.imagePath || '/about-apnelec.jpg'}
                   alt={blog.title}
                   fill
-                  className="object-cover"
+                  className="object-cover transition-transform duration-500 group-hover:scale-110"
+                  priority={false}
                 />
               </div>
               <div className="p-6 space-y-4">
@@ -113,54 +157,30 @@ export default function FeaturedBlogs() {
                 <p className="text-gray-600 dark:text-gray-300 line-clamp-3">
                   {truncateContent(blog.content)}
                 </p>
-                
-                <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  <span>{formatDate(blog.createdAt)}</span>
-                </div>
-                
-                <div className="flex items-center pt-4">
-                  <div className="flex-shrink-0 mr-3">
-                    {blog.author.image ? (
-                      <Image
-                        src={blog.author.image}
-                        alt={blog.author.name || "Author"}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                    ) : (
-                      <div className="h-10 w-10 rounded-full bg-gray-300 dark:bg-gray-600 flex items-center justify-center">
-                        <User className="h-6 w-6 text-gray-500 dark:text-gray-400" />
-                      </div>
-                    )}
+                <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center">
+                    <Calendar className="h-4 w-4 mr-1" />
+                    <span>{formatDate(blog.createdAt)}</span>
                   </div>
-                  <div className="text-sm">
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {blog.author.name || "Anonymous"}
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="pt-2">
-                  <span className="inline-flex items-center text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:text-blue-800 dark:group-hover:text-blue-300">
-                    Read more <ArrowRight className="ml-1 h-4 w-4" />
+                  <span className="inline-flex items-center font-medium text-blue-600 dark:text-blue-400">
+                    Read more <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                   </span>
                 </div>
               </div>
             </div>
           </Link>
-        ))
-      ) : (
-        <div className="col-span-full text-center py-12">
-          <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-            No blog posts found
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Check back later for new content
-          </p>
-        </div>
-      )}
-    </div>
+        </motion.div>
+      ))}
+      
+      <motion.div variants={item} className="md:col-span-3 flex justify-center mt-8">
+        <Link 
+          href="/Blog" 
+          className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1"
+        >
+          View all posts
+          <ArrowRight className="ml-3 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+        </Link>
+      </motion.div>
+    </motion.div>
   );
 } 

@@ -19,6 +19,7 @@ type Blog = {
     name: string | null;
     image?: string | null;
   };
+  imagePath: string | null;
 };
 
 export default function BlogDetail({ id }: { id: string }) {
@@ -209,7 +210,7 @@ export default function BlogDetail({ id }: { id: string }) {
           
           <div className="relative h-96 mb-8 bg-gray-200 dark:bg-gray-700 rounded-xl overflow-hidden">
             <Image
-              src={`https://source.unsplash.com/random/1200x800?sig=${blog.id}`}
+              src={blog.imagePath || `/images/blog/blog-${(parseInt(id) % 6) + 1}.jpg`}
               alt={blog.title || "Blog Image"}
               fill
               className="object-cover"
