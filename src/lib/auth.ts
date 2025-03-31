@@ -40,8 +40,8 @@ export const authOptions: NextAuthOptions = {
     strategy: 'jwt',
   },
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: '/sign-in',
+    error: '/sign-in',
   },
   providers: [
     GoogleProvider({
@@ -51,17 +51,17 @@ export const authOptions: NextAuthOptions = {
     CredentialsProvider({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "email" },
+        username: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials, req) {
-        if (!credentials?.email || !credentials?.password) {
+        if (!credentials?.username || !credentials?.password) {
           return null;
         }
 
         const user = await db.user.findUnique({
           where: {
-            username: credentials.email,
+            username: credentials.username,
           },
         });
 
@@ -90,10 +90,35 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
+    async redirect({ url, baseUrl }) {
+      // Allow all relative URLs without redirection changes
+      if (url.startsWith('/')) {
+        // Prevent redirects to sign-in with callbackUrl params when using the back button
+        if (url.startsWith('/sign-in?callbackUrl=')) {
+          // Extract the callback URL from the query parameter
+          const callbackUrl = new URL(url, baseUrl).searchParams.get('callbackUrl');
+          
+          // If we have a valid callback URL, and it's from our site, use it directly
+          if (callbackUrl && callbackUrl.startsWith('/')) {
+            return `${baseUrl}${callbackUrl}`;
+          }
+        }
+        
+        return `${baseUrl}${url}`;
+      }
+      // Allow absolute URLs on same origin
+      else if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      // Default to dashboard
+      return `${baseUrl}/dashboard`;
+    },
     async jwt({ token, user, account, profile }) {
       if (user) {
         token.id = user.id;
         token.isAdmin = (user as CustomUser).isAdmin || false;
+        token.email = user.email;
+        token.name = user.name;
       }
       
       // If this is a Google sign-in, update user data if needed

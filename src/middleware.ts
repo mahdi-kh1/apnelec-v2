@@ -16,54 +16,77 @@ const authPaths = [
   "/sign-up",
 ]
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl
+/**
+ * Check if the request is coming from a back button press
+ * This helps avoid redirecting during browser history navigation
+ */
+function isBackNavigation(req: NextRequest): boolean {
+  const referer = req.headers.get('referer')
+  const url = new URL(req.url)
   
-  // Get the token from the session
-  const token = await getToken({
-    req: request,
-    secret: process.env.SECRET,
-  })
+  // No referrer means direct navigation
+  if (!referer) return false
   
-  // Check if the path is protected and user is not authenticated
-  const isProtectedPath = protectedPaths.some(path => 
-    pathname.startsWith(path)
-  )
-  
-  if (isProtectedPath && !token) {
-    const url = new URL("/sign-in", request.url)
-    url.searchParams.set("callbackUrl", pathname)
-    return NextResponse.redirect(url)
+  // If referer is from the same host and not an auth page, 
+  // it's likely a back navigation
+  try {
+    const refererUrl = new URL(referer)
+    return refererUrl.host === url.host && 
+           !authPaths.some(path => refererUrl.pathname.startsWith(path))
+  } catch (e) {
+    return false
   }
-  
-  // Check if the path is an auth path and user is authenticated
-  const isAuthPath = authPaths.some(path => 
-    pathname.startsWith(path)
-  )
-  
-  if (isAuthPath && token) {
-    return NextResponse.redirect(new URL("/", request.url))
-  }
-  
-  return NextResponse.next()
 }
 
+// We'll use a single middleware function with withAuth
 export default withAuth(
-  function middleware(req) {
+  async function middleware(req) {
+    const { pathname } = req.nextUrl
     const token = req.nextauth.token;
-    const isAdminRoute = req.nextUrl.pathname.startsWith('/dashboard/blogs') || 
-                        req.nextUrl.pathname.startsWith('/dashboard/users');
+    
+    // Check if the path is an auth path and user is authenticated
+    // Only redirect if it's not from a back navigation
+    const isAuthPath = authPaths.some(path => 
+      pathname.startsWith(path)
+    )
+    
+    if (isAuthPath && token && !isBackNavigation(req)) {
+      return NextResponse.redirect(new URL("/dashboard", req.url))
+    }
+    
+    // Check for admin routes
+    const isAdminRoute = pathname.startsWith('/dashboard/blogs') || 
+                        pathname.startsWith('/dashboard/users');
 
     if (isAdminRoute && !token?.isAdmin) {
       return NextResponse.redirect(new URL('/dashboard/403', req.url));
     }
 
-    return NextResponse.next();
+    return NextResponse.next()
   },
   {
     callbacks: {
-      authorized: ({ token }) => !!token
+      // This handles the protection of routes automatically
+      authorized: ({ token, req }) => {
+        const { pathname } = req.nextUrl
+        
+        // If it's a protected path, require a token
+        const isProtectedPath = protectedPaths.some(path => 
+          pathname.startsWith(path)
+        )
+        
+        // For protected paths, require authentication
+        if (isProtectedPath) {
+          return !!token
+        }
+        
+        // For all other paths, allow access
+        return true
+      }
     },
+    pages: {
+      signIn: '/sign-in',
+    }
   }
 );
 

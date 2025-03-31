@@ -49,16 +49,14 @@ const SignInForm = () => {
         redirect: false,
         username: values.username,
         password: values.password,
+        callbackUrl: '/dashboard',
       });
       
       if (signInData?.error) {
         toast.error(signInData.error || 'Sign in failed');
       } else {
         toast.success('Signed in successfully');
-        setTimeout(() => {
-          router.refresh();
-          router.push('/');
-        }, 1000); 
+        router.push('/dashboard');
       }
     } catch (error) {
       console.error('Sign in error:', error);

@@ -21,8 +21,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <Header onMenuClick={() => setIsSidebarOpen(true)} />
       <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
 
-      <main className="lg:ml-64 pt-16 min-h-screen">
-        <div className="p-6">
+      <main className="lg:pl-72 pt-16 min-h-screen transition-all duration-300">
+        <div className="container mx-auto max-w-7xl p-4 md:p-6">
           {children}
         </div>
       </main>
