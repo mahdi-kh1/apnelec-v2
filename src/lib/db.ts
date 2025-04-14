@@ -15,11 +15,17 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = db
 }
 
-// Test the connection
-db.$connect()
-  .then(() => {
-    console.log('Database connection established')
-  })
-  .catch((error) => {
-    console.error('Database connection failed:', error)
-  })
+// For testing in development, wrap the connection test in try/catch
+if (process.env.NODE_ENV !== 'production') {
+  try {
+    db.$connect()
+      .then(() => {
+        console.log('Database connection established')
+      })
+      .catch((error) => {
+        console.error('Database connection failed:', error)
+      })
+  } catch (error) {
+    console.error('Database connection setup error:', error)
+  }
+}

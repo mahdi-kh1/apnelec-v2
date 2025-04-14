@@ -107,8 +107,8 @@ const Navbar = () => {
             <Link href="/" className="font-bold text-inherit">
               <Image
                 className="w-16 sm:w-16 md:w-24 lg:w-24 xl:w-24 p-2"
-                src="/apnelec-ev-logo.png"
-                alt="apnelec"
+                src="/logo.png"
+                alt="apnelec"      
                 width={80}
                 height={80}
               />

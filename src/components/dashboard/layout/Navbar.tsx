@@ -1,9 +1,9 @@
 import Link from 'next/link';
-import { buttonVariants } from '../../../components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
 import { HandMetal } from 'lucide-react';
 import { authOptions } from '@/lib/auth';
 import { getServerSession } from 'next-auth';
-import UserAccountnav from '../../../components/UserAccountNav';
+import UserAccountnav from '@/components/UserAccountNav';
 
 const Navbar = async () => {
 

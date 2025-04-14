@@ -1,0 +1,2006 @@
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous">
+    </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+<script>
+    function drawHouse(canvasId, slopeValueId, roofNumber, initialRoofAngle) {
+        var canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#333";
+        ctx.fillStyle = "#c64756";
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeRect(80, 140, 140, 110);
+        ctx.fillStyle = "#593d26";
+        ctx.fillRect(130, 190, 40, 60);
+
+        var roofRadian = (initialRoofAngle) * Math.PI / 180;
+        // Adjust the roofHeight calculation based on the actual size of the roof
+        var roofHeight = Math.tan(roofRadian / 2) * (140 / Math.cos(roofRadian / 2));
+
+        ctx.beginPath();
+        ctx.moveTo(75, 140);
+        ctx.lineTo(150, 140 - roofHeight);
+        ctx.lineTo(225, 140);
+        ctx.closePath();
+        ctx.stroke();
+        ctx.fill();
+
+        document.getElementById(slopeValueId).textContent = initialRoofAngle + " degrees";
+    }
+
+    function updateInputAndCanvas(roofSlopeRangeInput, roofSlopeTextInput, canvasId, slopeValueId, roofNumber) {
+        var enteredValue = roofSlopeTextInput.value.trim();
+        var roofAngle = parseInt(enteredValue);
+
+        if (!isNaN(roofAngle) && roofAngle >= 0 && roofAngle <= 75) {
+            roofSlopeRangeInput.value = roofAngle;
+            roofSlopeTextInput.value = roofAngle;
+            drawHouse(canvasId, slopeValueId, roofNumber, roofAngle);
+        }
+    }
+
+    function setupRoofInputListeners(canvasId, slopeValueId, roofNumber) {
+        var roofSlopeRangeInput = document.getElementById("roof-slope-range-" + roofNumber);
+        var roofSlopeTextInput = document.getElementById("roof-slope-text-" + roofNumber);
+
+        roofSlopeTextInput.addEventListener("keydown", function (event) {
+            if (event.key === "Backspace" || event.key === "Delete") {
+                // If Backspace or Delete key is pressed, set the value to null or zero
+                this.value = ''; // or this.value = '0'; to set it to zero
+                roofSlopeRangeInput.value = '0';
+            } else if (event.key === "-" || event.key === "+") {
+                // If minus or plus key is pressed, prevent the input
+                event.preventDefault();
+            }
+        });
+
+        // roofSlopeTextInput.addEventListener("keydown", function(event) {
+        //     if (event.key === "Backspace" || event.key === "Delete" || event.key === "+" || event.key === "-") {
+        //         debugger
+        //         // If the Backspace or Delete key is pressed, set the value to null or zero
+        //         this.value = ''; // or this.value = '0'; to set it to zero
+        //         roofSlopeRangeInput.value = '0';
+        //     }
+        // });
+
+        roofSlopeRangeInput.addEventListener("input", function () {
+            var roofAngle = parseInt(roofSlopeRangeInput.value);
+            roofSlopeTextInput.value = roofAngle;
+            updateInputAndCanvas(roofSlopeRangeInput, roofSlopeTextInput, canvasId, slopeValueId, roofNumber);
+        });
+
+        roofSlopeTextInput.addEventListener("input", function () {
+            var enteredValue = roofSlopeTextInput.value.trim();
+            if (enteredValue === '') {
+                // If the input is empty, set the range input value to zero
+                roofSlopeRangeInput.value = '0';
+            } else {
+                // Otherwise, ensure the input value is within the valid range
+                var roofAngle = parseInt(enteredValue);
+                if (!isNaN(roofAngle) && roofAngle >= 0 && roofAngle <= 75) {
+                    roofSlopeRangeInput.value = roofAngle;
+                }
+            }
+
+            // Update the canvas and other elements
+            updateInputAndCanvas(roofSlopeRangeInput, roofSlopeTextInput, canvasId, slopeValueId, roofNumber);
+        });
+    }
+
+
+
+
+    function setupRoofInputs() {
+        var count = 4; // Assuming you have 4 sets of inputs
+        for (var i = 1; i <= count; i++) {
+            var canvasId = "my-house-" + i;
+            var slopeValueId = "slope-value-" + i;
+            var initialRoofAngle = 0; // Set your initial angle here if needed
+            drawHouse(canvasId, slopeValueId, i, initialRoofAngle);
+            setupRoofInputListeners(canvasId, slopeValueId, i);
+        }
+    }
+
+    // Call the function to set up roof inputs
+    setupRoofInputs();
+
+</script>
+
+<script>
+    function drawSolarPanels(angle, canvasId) {
+        const canvas = document.getElementById(`solarPanelCanvas${canvasId}`);
+        const ctx = canvas.getContext("2d");
+        const panelWidth = 280;
+        const panelHeight = 5;
+        const groundY = canvas.height - panelHeight; // Solar panels on the floor
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Draw solar panels
+        ctx.lineWidth = 4; // Adjust as needed
+        ctx.fillRect(10, groundY, panelWidth, panelHeight); // First panel
+        // Draw inclined lines
+        angle = angle - 90;
+        const radians = (angle * Math.PI) / 180;
+        const lineLength = 80;
+        const startX = 100;
+        const startY = groundY;
+        const endX = startX + lineLength * Math.sin(radians);
+        const endY = startY - lineLength * Math.cos(radians);
+        const startX2 = panelWidth - 60;
+        const startY2 = groundY;
+        const endX2 = startX2 + lineLength * Math.sin(radians);
+        const endY2 = startY2 - lineLength * Math.cos(radians);
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.moveTo(startX2, startY2);
+        ctx.lineTo(endX2, endY2);
+        ctx.stroke();
+    }
+    function updateCanvas(canvasId) {
+        const angleInput = document.getElementById(`angleInput${canvasId}`);
+        const angle = parseInt(angleInput.value);
+        drawSolarPanels(angle, canvasId);
+    }
+    function updateCanvasRange(canvasId, angle) {
+        document.getElementById(`angleInput${canvasId}`).value = angle;
+        drawSolarPanels(angle, canvasId);
+    }
+
+    // Initial drawing for all canvas elements
+    for (let i = 1; i <= 4; i++) {
+        drawSolarPanels(0, i);
+    }
+</script>
+
+<script>
+    function drawSolarPanelsnewtype(angle, canvasId) {
+        const canvas = document.getElementById(`solarPanelCanvasFlat${canvasId}`);
+        const ctx = canvas.getContext("2d");
+        const panelWidth = 250;
+        const panelHeight = 180;
+        const groundY = canvas.height - panelHeight; // Solar panels on the floor
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // Draw solar panels
+        ctx.lineWidth = 4; // Adjust as needed
+        ctx.fillRect(10, groundY, panelWidth, panelHeight); // First panel
+        ctx.lineWidth = 4;
+        ctx.strokeStyle = "#333";
+        ctx.fillStyle = "#c64756";
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeRect(70, 120, 160, 110);
+        ctx.fillStyle = "#593d26";
+        ctx.fillRect(127, 160, 50, 70);
+        // Draw inclined lines
+        angle = angle - 90;
+        const radians = (angle * Math.PI) / 180;
+        const lineLength = 50;
+        const startX = 127;
+        const startY = groundY;
+        const endX = startX + lineLength * Math.sin(radians);
+        const endY = startY - lineLength * Math.cos(radians);
+        const startX2 = panelWidth - 60;
+        const startY2 = groundY;
+        const endX2 = startX2 + lineLength * Math.sin(radians);
+        const endY2 = startY2 - lineLength * Math.cos(radians);
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.moveTo(startX2, startY2);
+        ctx.lineTo(endX2, endY2);
+        ctx.stroke();
+    }
+    function shownewCanvas(canvasId) {
+        const angleInputFlat = document.getElementById(`angleInputFlat${canvasId}`);
+        const angle = parseInt(angleInputFlat.value);
+        drawSolarPanelsnewtype(angle, canvasId);
+    }
+    function shownewCanvasRange(canvasId, angle) {
+        document.getElementById(`angleInput${canvasId}`).value = angle;
+        drawSolarPanelsnewtype(angle, canvasId);
+    }
+    // Initial drawing for all canvas elements
+    for (let i = 1; i <= 4; i++) {
+        drawSolarPanelsnewtype(0, i);
+    }
+</script>
+
+<script>
+    var setdefaultzerovariable = document.getElementsByClassName("setdefaultzero");
+
+    for (var i = 0; i < setdefaultzerovariable.length; i++) {
+        setdefaultzerovariable[i].addEventListener("keydown", function (event) {
+            if (event.key === "Backspace" || event.key === "Delete" || event.key === "-") {
+                debugger
+                // If the Backspace or Delete key is pressed, set the value to null or zero
+                this.value = ''; // or this.value = '0'; to set it to zero
+            }
+        });
+    }
+</script>
+<div class="container">
+    <div class="row">
+        <section id="selection-wizard-costum" class="col-md-9">
+            <div class="wizard">
+                <div class="wizard-inner">
+                    <div class="connecting-line"></div>
+                    <ul class="nav nav-tabs" role="tablist">
+                        <li role="presentation" class="active">
+                            <a href="#step1" data-toggle="tab" aria-controls="step1" role="tab"
+                                title="address and post code">
+                                <span class="round-tab">
+                                    <i class="	fa fa-info-circle"></i>
+                                </span>
+                            </a>
+                        </li>
+
+                        <li role="presentation" class="disabled">
+                            <a href="#step2" data-toggle="tab" aria-controls="step2" role="tab" title="Roof Info">
+                                <span class="round-tab">
+                                    <i class="fa fa-home"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li role="presentation" class="disabled hidden">
+                            <a href="#step3" data-toggle="tab" aria-controls="step3" role="tab"
+                                title="Second Roof Info">
+                                <span class="round-tab">
+                                    <i class="fa fa-arrows"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li role="presentation" class="disabled hidden">
+                            <a href="#step4" data-toggle="tab" aria-controls="step4" role="tab" title="Third Roof Info">
+                                <span class="round-tab">
+                                    <i class="fa fa-arrows"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li role="presentation" class="disabled hidden">
+                            <a href="#step5" data-toggle="tab" aria-controls="step5" role="tab"
+                                title="Fourth Roof Info">
+                                <span class="round-tab">
+                                    <i class="fa fa-arrows"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <li role="presentation" class="disabled">
+                            <a href="#step6" data-toggle="tab" aria-controls="step6" role="tab"
+                                title="All Details View">
+                                <span class="round-tab">
+                                    <i class="fa fa-industry"></i>
+                                </span>
+                            </a>
+                        </li>
+                        <!-- <li role="presentation" class="disabled">
+                            <a href="#complete" data-toggle="tab" aria-controls="complete" role="tab" title="Complete">
+                                <span class="round-tab">
+                                <i class="	fa fa-address-card"></i>
+                            </span>
+                            </a>
+                        </li> -->
+                    </ul>
+                </div>
+
+                <form role="form">
+                    <div class="tab-content">
+                        <div class="tab-pane active" role="tabpanel" id="step1">
+                            <div class="basic-details">
+                                <h3 class="my-3">Roof basic details</h3>
+                                <!-- ********************************* roof Basic Details ********************************* -->
+                                <div class="input-group Postcode my-3 col-md-3 col-sm-6 col-xs-12 ">
+                                    <span class="input-group-text" id="postcode">Post code</span>
+                                    <input type="text" onfocus="this.select()" ng-change="addSpace()"
+                                        class="form-control required-input" style="text-transform: uppercase;"
+                                        aria-label="Post Code" ng-model="PostCode">
+                                    <!-- <span class="icon-container input-group-text"></span> -->
+                                    <div class="icon-container input-group-text">
+                                        <div class="icon">
+                                            ?
+                                        </div>
+                                        <div class="toolbox">
+                                            <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                            <div class="toolbox-section tb-body">
+                                                Here is the tb-body of your toolbox.
+                                            </div>
+                                            <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="input-group Postcode mb-3 col-md-3 col-sm-6 col-xs-12 ">
+                                    <label class="input-group-text">Residence Type</label>
+                                    <select class="form-control residentType" ng-Model="selectedResidenceType"
+                                        name="Residence Type">Choose Residence Type
+                                        <!-- <option value="Choose Residence Type" selected></option> -->
+                                        <option value="COMMERCIAL">COMMERCIAL</option>
+                                        <option value="DOMESTIC">DOMESTIC</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- Button trigger modal -->
+                            <div class="d-flex">
+                                <button type="button" class="btn btn-info m-3" data-bs-toggle="modal"
+                                    data-bs-target="#exampleModal">
+                                    Read more
+                                </button>
+                                <!-- <div class="icon-container">
+                                    <div class="icon">
+                                         
+                                        Hover over me!
+                                    </div>
+                                    <div class="toolbox">
+                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                        <div class="toolbox-section tb-body">
+                                            Here is the tb-body of your toolbox.
+                                        </div>
+                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                    </div>
+                                </div> -->
+                            </div>
+                            <!-- Modal -->
+                            <div class="modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                                aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Roof slope</h1>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>The slider below will help you specify the slope angle of the most
+                                                suitable roofspace.
+                                                It's worth noting that the typical roof slope for the average UK home is
+                                                about 30
+                                                degrees.</p>
+                                            <p>0° is a flat roof and 90° means that you want to install PV panels on a
+                                                vertical surface
+                                                such as a wall.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="list-inline pull-right">
+                                <li><button type="button" b-click="LoadMap()"
+                                        class="btn btn-primary my-3 next-step">Save and continue</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="step2">
+                            <!-- <h2>Details of Roof 1</h2> -->
+                            <h2>Details of roof </h2>
+                            <div class="col-md-12 col-sm-12 p-0">
+                                <!-- <h2>{{PostcodeZone}}</h2>
+                                <hr>
+                                <h2>{{ZoneNumber}}</h2> -->
+
+                                <h4 class="my-3">What’s the orientation of roof?</h4>
+                                <div class="Orientation-container p-0">
+                                    <!-- <button class="btn btn-primary my-3" b-click="LoadMap()">Load Map</button> -->
+                                    <div class="watch-container">
+                                        <div id="stick"></div>
+                                        <!-- <div id="mapContainer"></div>  -->
+                                        <div id="circle"></div>
+                                        <div class="label" style="top: -4%;right: 47.5%;">North</div>
+
+                                    </div>
+                                    <div class="Orientation-input">
+                                        <label for="Roof-Orientation-one">Select roof orientation:</label>
+                                        <input type="range" id="Roof-Orientation-one" min="-180" max="180" step="1"
+                                            value="0" ng-change="OrientationOneShowOnPanel()"
+                                            ng-model="RoofOneOrientation">
+                                        <span id="Roof-Orientation-one-value">0 Degrees</span>
+                                    </div>
+                                    <div class="input-group Roof-Orientation mx-auto mb-5 flex-nowrap">
+                                        <span class=" input-group-text" id="length-Of-Roof-one">Roof orientation</span>
+                                        <input onfocus="this.value=''" type="text" id="stick-input"
+                                            class="required-input form-control" aria-label="Roof Orientation"
+                                            ng-change="OrientationOneShowOnPanel()" ng-model="RoofOneOrientation"
+                                            value="0" min="-180" max="180">
+                                        <span class="input-group-text">° Degrees</span>
+                                        <div class="icon-container input-group-text">
+                                            <div class="icon">
+
+                                                ?
+                                            </div>
+                                            <div class="toolbox">
+                                                <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                <div class="toolbox-section tb-body">
+                                                    Here is the tb-body of your toolbox.
+                                                </div>
+                                                <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <script>
+                                    var stick = document.getElementById("stick");
+                                    var roofSlopeInput = document.getElementById("Roof-Orientation-one");
+                                    var slopeValue = document.getElementById("Roof-Orientation-one-value");
+                                    var stickInput = document.getElementById("stick-input");
+
+                                    // Function to update the roof orientation from the input
+                                    function updateRoofOrientationFromInput() {
+                                        var orientation = parseInt(stickInput.value);
+                                        stick.style.transform = `rotate(${180 - orientation}deg)`;
+                                        roofSlopeInput.value = orientation;
+                                        slopeValue.textContent = orientation + " degrees";
+
+                                    }
+                                    // Function to update the roof orientation from the range input
+                                    function updateRoofOrientation(degrees) {
+                                        stick.style.transform = `rotate(${180 - degrees}deg)`;
+                                        stickInput.value = degrees;
+                                        slopeValue.textContent = degrees + " degrees";
+                                    }
+                                    // Add input event listeners to the input and range elements
+                                    stickInput.addEventListener("input", updateRoofOrientationFromInput);
+                                    roofSlopeInput.addEventListener("input", function () {
+                                        var orientation = parseInt(roofSlopeInput.value);
+                                        updateRoofOrientation(orientation);
+                                    });
+                                    // Initialize the watch with the default value
+                                    updateRoofOrientation(0);
+                                </script>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-7 col-sm-12">
+                                    <h4 class="my-3">Enter Basic Details</h4>
+                                    <div class="input-group shade-factor my-5 col-md-3 col-sm-6 col-xs-12">
+                                        <span class="input-group-text" id="shade-factor-span">Shade factor</span>
+                                        <input type="text" onfocus="this.select()" id="shade-factor-1"
+                                            class="required-input form-control" aria-label="Roof one shade factor"
+                                            ng-model="ShadeFactorOne" value="0" min="0" max="10">
+                                        <span class="input-group-text">(%) Percent</span>
+                                        <div class="icon-container input-group-text">
+                                            <div class="icon">
+
+                                                ?
+                                            </div>
+                                            <div class="toolbox">
+                                                <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                <div class="toolbox-section tb-body">
+                                                    Here is the tb-body of your toolbox.
+                                                </div>
+                                                <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="input-group PVOutPut my-5 col-md-3 col-sm-6 col-xs-12 ">
+                                        <span class="input-group-text" id="PVOutPutOne">Output of PV system</span>
+                                        <input type="text" onfocus="this.select()" class=" required-input form-control"
+                                            aria-label="pv output One" ng-model="PVOutPutOne">
+                                        <span class="input-group-text">kWp</span>
+                                        <div class="icon-container input-group-text">
+                                            <div class="icon">
+
+                                                ?
+                                            </div>
+                                            <div class="toolbox">
+                                                <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                <div class="toolbox-section tb-body">
+                                                    Here is the tb-body of your toolbox.
+                                                </div>
+                                                <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- <h3>Choose your roof type:</h3> -->
+                                    <div class="container row mt-3">
+                                        <div class="dropdown w-35 pr-0 pl-0">
+                                            <button class="btn btn-rooftype dropdown-toggle w-100 roof-la custom-r"
+                                                type="button" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false">
+                                                Roof Type
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item dropdown-hover" ng-repeat="item in items"
+                                                    ng-mouseover="hoverIn(item)" ng-mouseleave="hoverOut()"
+                                                    b-click="selectItem(item)">
+                                                    <!-- Added ng-click directive -->
+                                                    {{item.name}}
+                                                    <div class="dropdown-img" b-show="hoveredItem === item">
+                                                        <img ng-src="{{item.src}}" alt="{{item.name}}">
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="w-50 pr-0 pl-0 ">
+                                            <p class="w-100 form-control custom-l custom-r roof-la"
+                                                style="border-radius: 0!important;">{{ rooftype1.name }}</p>
+                                            <!-- <img b-show="rooftype1" ng-src="{{rooftype1.src}}" alt="{{rooftype1.name}}" class="img-thumbnail"> -->
+                                        </div>
+                                        <div class="w-15 icon-container input-group-text pr-0 pl-0 custom-l roof-la">
+                                            <div class="icon">
+
+                                                ?
+                                            </div>
+                                            <div class="toolbox">
+                                                <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                <div class="toolbox-section tb-body">
+                                                    Here is the tb-body of your toolbox.
+                                                </div>
+                                                <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-5 col-sm-12">
+                                    <h4 class="my-3">Enter The Inclination of Roof</h4>
+                                    <div class="slope-container">
+                                        <canvas class="" id="my-house-1" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvas1" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvasFlat1" width="300"
+                                            height="300"></canvas>
+
+                                        <div class="hidden" id="angel-info-1">
+
+                                            <label for="angleInput1">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeOneShowOnPanel()"
+                                                oninput="updateCanvasRange(1, this.value)" ng-model="Form.RoofSlopeOne">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInput1" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeOneShowOnPanel()"
+                                                    onkeyup="updateCanvas(1)" ng-model="Form.RoofSlopeOne">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="hidden" id="angel-flat-info-1">
+
+                                            <label for="angleInputFlat1">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeOneShowOnPanel()"
+                                                oninput="shownewCanvasRange(1, this.value)"
+                                                ng-model="Form.RoofSlopeOne">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInputFlat1" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeOneShowOnPanel()"
+                                                    onkeyup="shownewCanvas(1)" ng-model="Form.RoofSlopeOne">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="" id="slope-info-1">
+                                            <label for="roof-slope-1">Select roof slope (inclination):</label>
+                                            <!-- Set the default value of the range input to zero -->
+                                            <input type="range" ng-model="Form.RoofSlopeOne"
+                                                ng-change="RoofSlopeOneShowOnPanel()" id="roof-slope-range-1"
+                                                class="roof-slope-input" max="75" value="0">
+                                            <span id="slope-value-1">{{Form.RoofSlopeOne}} Degrees</span>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Roof slope</span>
+                                                <input onfocus="this.value=''" type="number" id="roof-slope-text-1"
+                                                    class="form-control roof-slope-input" aria-label="Roof Slope"
+                                                    ng-change="RoofSlopeOneShowOnPanel()" ng-model="Form.RoofSlopeOne"
+                                                    value="0">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                            </div>
+
+                            <ul class="list-inline pull-right">
+                                <!-- <li><button type="button" class="btn btn-default prev-step">Previous</button></li> -->
+                                <li><button type="button" b-click="calculateResult()"
+                                        class="btn btn-primary my-3 next-step">Save and continue</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="step3">
+                            <!-- <h2>Details of Roof 2</h2> -->
+                            <h2>Details of roof </h2>
+
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 py-0 px-2">
+                                    <!-- Second orientation picker -->
+                                    <h4 class="my-3">What’s the orientation of roof?</h4>
+                                    <div class="Orientation-container p-0">
+                                        <div id="mapContainer" class="watch-container">
+                                            <div id="stick-2"></div>
+                                            <div id="circletwo"></div>
+                                            <div class="label" style="top: -4%;right: 47.5%;">North</div>
+                                        </div>
+                                        <div class="Orientation-input">
+                                            <label for="Roof-Orientation-two">Select roof orientation:</label>
+                                            <input type="range" id="Roof-Orientation-two" min="-180" max="180" step="1"
+                                                value="0" ng-change="OrientationTwoShowOnPanel()"
+                                                ng-model="RoofTwoOrientation">
+                                            <span id="Roof-Orientation-two-value">0 Degrees</span>
+                                        </div>
+                                        <div class="input-group Roof-Orientation flex-nowrap w-50 mx-auto mb-5">
+                                            <span class="input-group-text" id="length-Of-Roof-two">Roof
+                                                orientation</span>
+                                            <input onfocus="this.value=''" type="text" id="stick-input-2"
+                                                class="form-control required-input" aria-label="Roof orientation"
+                                                ng-change="OrientationTwoShowOnPanel()" ng-model="RoofTwoOrientation"
+                                                value="0" min="-180" max="180">
+                                            <span class="input-group-text">° Degrees</span>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        var stick2 = document.getElementById("stick-2");
+                                        var roofSlopeInput2 = document.getElementById("Roof-Orientation-two");
+                                        var slopeValue2 = document.getElementById("Roof-Orientation-two-value");
+                                        var stickInput2 = document.getElementById("stick-input-2");
+
+                                        // Function to update the roof orientation from the input
+                                        function updateRoofOrientationFromInput2() {
+                                            var orientation = parseInt(stickInput2.value);
+                                            stick2.style.transform = `rotate(${180 - orientation}deg)`;
+                                            roofSlopeInput2.value = orientation;
+                                            slopeValue2.textContent = orientation + " degrees";
+                                        }
+
+                                        // Function to update the roof orientation from the range input
+                                        function updateRoofOrientation2(degrees) {
+                                            stick2.style.transform = `rotate(${180 - degrees}deg)`;
+                                            stickInput2.value = degrees;
+                                            slopeValue2.textContent = degrees + " degrees";
+                                        }
+
+                                        // Add input event listeners to the input and range elements
+                                        stickInput2.addEventListener("input", updateRoofOrientationFromInput2);
+                                        roofSlopeInput2.addEventListener("input", function () {
+                                            var orientation = parseInt(roofSlopeInput2.value);
+                                            updateRoofOrientation2(orientation);
+                                        });
+
+                                        // Initialize the watch with the default value
+                                        updateRoofOrientation2(0);
+                                    </script>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-7 col-sm-12">
+                                    <h4 class="my-3">Enter Basic Details</h4>
+                                    <div class="input-group shade-factor my-3 col-md-3 col-sm-6 col-xs-12">
+
+                                        <span class="input-group-text" id="shade-factor-span">Shade factor</span>
+                                        <input type="number" id="shade-factor-2" class="form-control required-input"
+                                            aria-label="Roof two shade factor" ng-model="ShadeFactorTwo" value="0"
+                                            min="0" max="10">
+                                        <span class="input-group-text">(%) Percent</span>
+                                    </div>
+                                    <div class="input-group PVOutPut my-3 col-md-3 col-sm-6 col-xs-12 ">
+                                        <span class="input-group-text" id="PVOutPutTwo">Output of PV system</span>
+                                        <input type="number" class="form-control required-input" aria-label="pv output"
+                                            ng-model="PVOutPutTwo">
+                                        <span class="input-group-text">kWp</span>
+                                    </div>
+                                    <!-- <h3>Choose your roof type:</h3> -->
+                                    <div class="container row mt-3">
+                                        <div class="dropdown w-35 pr-0">
+                                            <button class="btn btn-rooftype dropdown-toggle w-100 roof-la custom-r"
+                                                type="button" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false">
+                                                Roof Type
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item dropdown-hover" ng-repeat="item in items"
+                                                    ng-mouseover="hoverIn(item)" ng-mouseleave="hoverOut()"
+                                                    b-click="selectItemTwo(item)">
+                                                    <!-- Added ng-click directive -->
+                                                    {{item.name}}
+                                                    <div class="dropdown-img" b-show="hoveredItem === item">
+                                                        <img ng-src="{{item.src}}" alt="{{item.name}}">
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="w-65 pl-0">
+                                            <p class="w-100 form-control">{{ rooftype2.name }}</p>
+                                            <!-- <img b-show="rooftype2" ng-src="{{rooftype2.src}}" alt="{{rooftype2.name}}" class="img-thumbnail"> -->
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="col-md-5 col-sm-12">
+                                    <h4 class="my-3 px-4">What’s the pitch of roof?</h4>
+                                    <div class="slope-container">
+                                        <canvas class="" id="my-house-2" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvas2" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvasFlat2" width="300"
+                                            height="300"></canvas>
+
+                                        <div class="hidden" id="angel-info-2">
+                                            <label for="angleInput2">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeTwoShowOnPanel()"
+                                                oninput="updateCanvasRange(2, this.value)" ng-model="Form.RoofSlopeTwo">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInput2" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeTwoShowOnPanel()"
+                                                    onkeyup="updateCanvas(2)" ng-model="Form.RoofSlopeTwo">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="hidden" id="angel-flat-info-2">
+                                            <label for="angleInputFlat2">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeTwoShowOnPanel()"
+                                                oninput="shownewCanvasRange(2, this.value)"
+                                                ng-model="Form.RoofSlopeTwo">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInputFlat2" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeTwoShowOnPanel()"
+                                                    onkeyup="shownewCanvas(2)" ng-model="Form.RoofSlopeTwo">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="" id="slope-info-2">
+                                            <label for="roof-slope-2">Select roof slope (inclination):</label>
+                                            <input type="range" ng-model="Form.RoofSlopeTwo"
+                                                ng-change="RoofSlopeTwoShowOnPanel()" id="roof-slope-range-2"
+                                                class="roof-slope-input" min="0" max="75" step="1" value="0">
+                                            <span id="slope-value-2">0 Degrees</span>
+                                            <div class="input-group w-135 Roof-Slope-Two my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-Two">Roof slope</span>
+                                                <input onfocus="this.value=''" type="number" id="roof-slope-text-2"
+                                                    class="form-control roof-slope-input" aria-label="Roof Slope"
+                                                    ng-change="RoofSlopeTwoShowOnPanel()" ng-model="Form.RoofSlopeTwo"
+                                                    value="0" min="0" max="75">
+                                                <span class="input-group-text">° Degrees</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="list-inline pull-right">
+                                <!-- <li><button type="button" class="btn btn-default prev-step">Previous</button></li> -->
+                                <li><button type="button" b-click="calculateResult2()"
+                                        class="btn btn-primary my-3 next-step">Save and continue</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="step4">
+                            <!-- <h2>Details of Roof 3</h2> -->
+                            <h2>Details of roof </h2>
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 py-0 px-2">
+                                    <!-- Third orientation picker -->
+                                    <h4 class="my-3">What’s the orientation of roof?</h4>
+                                    <div class="Orientation-container p-0">
+                                        <div id="mapContainer" class="watch-container">
+                                            <div id="stick-3"></div>
+                                            <div id="circlethree"></div>
+                                            <div class="label" style="top: -4%;right: 47.5%;">North</div>
+                                        </div>
+                                        <div class="Orientation-input">
+                                            <label for="Roof-Orientation-three">Select roof orientation:</label>
+                                            <input type="range" id="Roof-Orientation-three" min="-180" max="180"
+                                                step="1" value="0" ng-change="OrientationThreeShowOnPanel()"
+                                                ng-model="RoofThreeOrientation">
+                                            <span id="Roof-Orientation-three-value">0 Degrees</span>
+                                        </div>
+                                        <div class="input-group Roof-Orientation flex-nowrap w-50 mx-auto mb-5">
+                                            <span class="input-group-text" id="length-Of-Roof-three">Roof
+                                                orientation</span>
+                                            <input onfocus="this.value=''" type="text" id="stick-input-3"
+                                                class="form-control required-input" aria-label="Roof orientation"
+                                                ng-change="OrientationThreeShowOnPanel()"
+                                                ng-model="RoofThreeOrientation" value="0" min="-180" max="180">
+                                            <span class="input-group-text">° Degrees</span>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        var stick3 = document.getElementById("stick-3");
+                                        var roofSlopeInput3 = document.getElementById("Roof-Orientation-three");
+                                        var slopeValue3 = document.getElementById("Roof-Orientation-three-value");
+                                        var stickInput3 = document.getElementById("stick-input-3");
+
+                                        // Function to update the roof orientation from the input
+                                        function updateRoofOrientationFromInput3() {
+                                            var orientation = parseInt(stickInput3.value);
+                                            stick3.style.transform = `rotate(${180 - orientation}deg)`;
+                                            roofSlopeInput3.value = orientation;
+                                            slopeValue3.textContent = orientation + " degrees";
+                                        }
+
+                                        // Function to update the roof orientation from the range input
+                                        function updateRoofOrientation3(degrees) {
+                                            stick3.style.transform = `rotate(${180 - degrees}deg)`;
+                                            stickInput3.value = degrees;
+                                            slopeValue3.textContent = degrees + " degrees";
+                                        }
+
+                                        // Add input event listeners to the input and range elements
+                                        stickInput3.addEventListener("input", updateRoofOrientationFromInput3);
+                                        roofSlopeInput3.addEventListener("input", function () {
+                                            var orientation = parseInt(roofSlopeInput3.value);
+                                            updateRoofOrientation3(orientation);
+                                        });
+
+                                        // Initialize the watch with the default value
+                                        updateRoofOrientation3(0);
+                                    </script>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-7 col-sm-12">
+                                    <h4 class="my-3">Enter Basic Details</h4>
+                                    <div class="input-group shade-factor my-3 col-md-3 col-sm-6 col-xs-12">
+                                        <span class="input-group-text" id="shade-factor-span">Shade factor</span>
+                                        <input type="number" id="shade-factor-3" class="form-control required-input"
+                                            aria-label="Roof three shade factor" ng-model="ShadeFactorThree" value="0"
+                                            min="0" max="10">
+                                        <span class="input-group-text">(%) Percent</span>
+                                    </div>
+
+                                    <div class="input-group PVOutPut my-3 col-md-3 col-sm-6 col-xs-12 ">
+                                        <span class="input-group-text" id="PVOutPutThree">Output of PV system</span>
+                                        <input type="number" class="form-control required-input" aria-label="pv output"
+                                            ng-model="PVOutPutThree">
+                                        <span class="input-group-text">kWp</span>
+                                    </div>
+                                    <div class="container row mt-3">
+                                        <div class="dropdown w-35 pr-0">
+                                            <button class="btn btn-rooftype dropdown-toggle w-100 roof-la custom-r"
+                                                type="button" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false">
+                                                Roof Type
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item dropdown-hover" ng-repeat="item in items"
+                                                    ng-mouseover="hoverIn(item)" ng-mouseleave="hoverOut()"
+                                                    b-click="selectItemThree(item)">
+                                                    <!-- Added ng-click directive -->
+                                                    {{item.name}}
+                                                    <div class="dropdown-img" b-show="hoveredItem === item">
+                                                        <img ng-src="{{item.src}}" alt="{{item.name}}">
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="w-65 pl-0">
+                                            <p class="w-100 form-control">{{ rooftype3.name }}</p>
+                                            <!-- <img b-show="rooftype3" ng-src="{{rooftype3.src}}" alt="{{rooftype3.name}}" class="img-thumbnail"> -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5 col-sm-12">
+                                    <h4 class="my-3 px-4">What’s the pitch of roof?</h4>
+                                    <div class="slope-container">
+                                        <canvas class="" id="my-house-3" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvas3" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvasFlat3" width="300"
+                                            height="300"></canvas>
+
+                                        <div class="hidden" id="angel-info-3">
+                                            <label for="angleInput3">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeThreeShowOnPanel()"
+                                                oninput="updateCanvasRange(3, this.value)"
+                                                ng-model="Form.RoofSlopeThree">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInput3" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeThreeShowOnPanel()"
+                                                    onkeyup="updateCanvas(3)" ng-model="Form.RoofSlopeThree">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <div class="hidden" id="angel-flat-info-3">
+                                            <label for="angleInputFlat3">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeThreeShowOnPanel()"
+                                                oninput="shownewCanvasRange(3, this.value)"
+                                                ng-model="Form.RoofSlopeThree">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInputFlat3" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeThreeShowOnPanel()"
+                                                    onkeyup="shownewCanvas(3)" ng-model="Form.RoofSlopeThree">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="" id="slope-info-3">
+                                            <label for="roof-slope-3">Select roof slope (inclination):</label>
+                                            <input type="range" ng-model="Form.RoofSlopeThree"
+                                                ng-change="RoofSlopeThreeShowOnPanel()" class="roof-slope-input"
+                                                id="roof-slope-range-3" min="0" max="75" step="1" value="0">
+                                            <span id="slope-value-3">0 Degrees</span>
+                                            <div class="input-group w-135 Roof-Slope-Three my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-Three">Roof slope</span>
+                                                <input onfocus="this.value=''" type="number" id="roof-slope-text-3"
+                                                    class="form-control roof-slope-input" aria-label="Roof Slope"
+                                                    ng-change="RoofSlopeThreeShowOnPanel()"
+                                                    ng-model="Form.RoofSlopeThree" value="0" min="0" max="75">
+                                                <span class="input-group-text">° Degrees</span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                            <ul class="list-inline pull-right">
+                                <!-- <li><button type="button" class="btn btn-default prev-step">Previous</button></li> -->
+                                <li><button type="button" b-click="calculateResult3()"
+                                        class="btn btn-primary my-3 next-step">Save and continue</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="step5">
+                            <!-- <h2>Details of Roof 4</h2> -->
+                            <h2>Details of roof </h2>
+                            <div class="row">
+                                <div class="col-md-12 col-sm-12 py-0 px-2">
+                                    <!-- Fourth orientation picker -->
+                                    <h4 class="my-3">What’s the orientation of roof?</h4>
+                                    <div class="Orientation-container p-0">
+                                        <div id="mapContainer" class="watch-container">
+                                            <div id="stick-4"></div>
+                                            <div id="circlefour"></div>
+                                            <div class="label" style="top: -4%;right: 47.5%;">North</div>
+                                        </div>
+                                        <div class="Orientation-input">
+                                            <label for="Roof-Orientation-four">Select roof orientation:</label>
+                                            <input type="range" id="Roof-Orientation-four" min="-180" max="180" step="1"
+                                                value="0" ng-change="OrientationFourShowOnPanel()"
+                                                ng-model="RoofFourOrientation">
+                                            <span id="Roof-Orientation-four-value">0 Degrees</span>
+                                        </div>
+                                        <div class="input-group Roof-Orientation flex-nowrap w-50 mx-auto mb-5">
+                                            <span class="input-group-text" id="length-Of-Roof-four">Roof
+                                                orientation</span>
+                                            <input onfocus="this.value=''" type="text" id="stick-input-4"
+                                                class="form-control required-input" aria-label="Roof orientation"
+                                                ng-change="OrientationFourShowOnPanel()" ng-model="RoofFourOrientation"
+                                                value="0" min="-180" max="180">
+                                            <span class="input-group-text">Degrees</span>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        var stick4 = document.getElementById("stick-4");
+                                        var roofSlopeInput4 = document.getElementById("Roof-Orientation-four");
+                                        var slopeValue4 = document.getElementById("Roof-Orientation-four-value");
+                                        var stickInput4 = document.getElementById("stick-input-4");
+
+                                        // Function to update the roof orientation from the input
+                                        function updateRoofOrientationFromInput4() {
+                                            var orientation = parseInt(stickInput4.value);
+                                            stick4.style.transform = `rotate(${180 - orientation}deg)`;
+                                            roofSlopeInput4.value = orientation;
+                                            slopeValue4.textContent = orientation + " degrees";
+                                        }
+
+                                        // Function to update the roof orientation from the range input
+                                        function updateRoofOrientation4(degrees) {
+                                            stick4.style.transform = `rotate(${180 - degrees}deg)`;
+                                            stickInput4.value = degrees;
+                                            slopeValue4.textContent = degrees + " degrees";
+                                        }
+
+                                        // Add input event listeners to the input and range elements
+                                        stickInput4.addEventListener("input", updateRoofOrientationFromInput4);
+                                        roofSlopeInput4.addEventListener("input", function () {
+                                            var orientation = parseInt(roofSlopeInput4.value);
+                                            updateRoofOrientation4(orientation);
+                                        });
+
+                                        // Initialize the watch with the default value
+                                        updateRoofOrientation4(0);
+                                    </script>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-7 col-sm-12">
+                                    <div class="input-group shade-factor my-3 col-md-3 col-sm-6 col-xs-12">
+                                        <span class="input-group-text" id="shade-factor-span">Shade factor</span>
+                                        <input type="number" id="shade-factor-4" class="form-control required-input"
+                                            aria-label="Roof Four Shade Factor" ng-model="ShadeFactorFour" value="0"
+                                            min="0" max="10">
+                                        <span class="input-group-text">(%) Percent</span>
+                                    </div>
+                                    <div class="input-group PVOutPut my-3 col-md-3 col-sm-6 col-xs-12 ">
+                                        <span class="input-group-text" id="PVOutPutFour">Output Of PV system</span>
+                                        <input type="number" class="form-control required-input" aria-label="pv output"
+                                            ng-model="PVOutPutFour">
+                                        <span class="input-group-text">kWp</span>
+                                    </div>
+                                    <div class="container row mt-3">
+                                        <div class="dropdown w-35 pr-0">
+                                            <button class="btn btn-rooftype dropdown-toggle w-100 roof-la custom-r"
+                                                type="button" data-toggle="dropdown" aria-haspopup="true"
+                                                aria-expanded="false">
+                                                Roof Type
+                                            </button>
+                                            <div class="dropdown-menu">
+                                                <a class="dropdown-item dropdown-hover" ng-repeat="item in items"
+                                                    ng-mouseover="hoverIn(item)" ng-mouseleave="hoverOut()"
+                                                    b-click="selectItemFour(item)">
+                                                    <!-- Added ng-click directive -->
+                                                    {{item.name}}
+                                                    <div class="dropdown-img" b-show="hoveredItem === item">
+                                                        <img ng-src="{{item.src}}" alt="{{item.name}}">
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        </div>
+                                        <div class="w-65 pl-0">
+                                            <p class="w-100 form-control">{{ rooftype4.name }}</p>
+                                            <!-- <img b-show="rooftype4" ng-src="{{rooftype4.src}}" alt="{{rooftype4.name}}" class="img-thumbnail"> -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-5 col-sm-12">
+                                    <h4 class="my-3 px-4">What’s the pitch of roof?</h4>
+                                    <div class="slope-container">
+                                        <canvas class="" id="my-house-4" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvas4" width="300" height="300"></canvas>
+                                        <canvas class="hidden" id="solarPanelCanvasFlat4" width="300"
+                                            height="300"></canvas>
+
+                                        <div class="hidden" id="angel-info-4">
+                                            <label for="angleInput4">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeFourShowOnPanel()"
+                                                oninput="updateCanvasRange(4, this.value)"
+                                                ng-model="Form.RoofSlopeFour">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInput4" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeFourShowOnPanel()"
+                                                    onkeyup="updateCanvas(4)" ng-model="Form.RoofSlopeFour">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="hidden" id="angel-flat-info-4">
+                                            <label for="angleInputFlat4">Enter Solar Panel Angle (0-75°):</label>
+                                            <input type="range" min="0" max="75" value="0"
+                                                ng-change="RoofSlopeFourShowOnPanel()"
+                                                oninput="shownewCanvasRange(4, this.value)"
+                                                ng-model="Form.RoofSlopeFour">
+                                            <br>
+                                            <div class="input-group Roof-Slope-One my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-One">Angle</span>
+                                                <input onfocus="this.value=''" type="number"
+                                                    class="form-control setdefaultzero" id="angleInputFlat4" min="0"
+                                                    max="75" value="0" ng-change="RoofSlopeFourShowOnPanel()"
+                                                    onkeyup="shownewCanvas(4)" ng-model="Form.RoofSlopeFour">
+                                                <span class="input-group-text">° Degrees</span>
+                                                <div class="icon-container input-group-text">
+                                                    <div class="icon">
+                                                        ?
+                                                    </div>
+                                                    <div class="toolbox">
+                                                        <div class="toolbox-section tb-header">Toolbox tb-header</div>
+                                                        <div class="toolbox-section tb-body">
+                                                            Here is the tb-body of your toolbox.
+                                                        </div>
+                                                        <div class="toolbox-section tb-Footer">Toolbox tb-Footer</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="" id="slope-info-4">
+                                            <label for="roof-slope-4">Select roof slope (inclination):</label>
+                                            <input type="range" ng-model="Form.RoofSlopeFour"
+                                                ng-change="RoofSlopeFourShowOnPanel()" class="roof-slope-input"
+                                                id="roof-slope-range-4" min="0" max="75" step="1" value="0">
+                                            <span id="slope-value-4">0 Degrees</span>
+                                            <div class="input-group w-135 Roof-Slope-Four my-3 d-flex flex-nowrap">
+                                                <span class="input-group-text" id="Roof-Slope-Four">Roof slope</span>
+                                                <input onfocus="this.value=''" type="number" id="roof-slope-text-4"
+                                                    class="form-control roof-slope-input" aria-label="Roof Slope"
+                                                    ng-change="RoofSlopeFourShowOnPanel()" ng-model="Form.RoofSlopeFour"
+                                                    value="0" min="0" max="75">
+                                                <span class="input-group-text">° Degrees</span>
+                                            </div>
+                                        </div>
+
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <ul class="list-inline pull-right">
+                                <!-- <li><button type="button" class="btn btn-default prev-step">Previous</button></li> -->
+                                <li><button type="button" b-click="calculateResult4()"
+                                        class="btn btn-primary my-3 next-step">Save and continue</button>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tab-pane" role="tabpanel" id="step6">
+                            <div id="result" class="result-details w-100">
+                                <div class="result-header">
+                                    <!--img id="dnn_dnnLOGO575027_imgLogo" class="header-logo mx-5" src="/Portals/0/apnelec-Logo-02.png?ver=ZxKxEo1G1WpmxgwRJK3ong%3d%3d" alt="APN Elec" style="width:100px;height:50px"-->
+                                    <h4 class="hideonprint mx-5">Solar calculator details</h4>
+                                </div>
+                                <div id="section-to-print" class="result-body">
+                                    <div class="printsectionhidden">
+                                        <div
+                                            class="d-flex justify-content-center align-items-center text-align-center;">
+                                            <h4 class="my-1">System performance calculation details <br> from APN Elec
+                                                solar calculator
+                                            </h4>
+                                        </div>
+                                        <div class="resultmapshow" id="resultshow"></div>
+                                    </div>
+
+                                    <div class="view-info-container roof-basic-info row mx-3 my-4">
+                                        <div class="row col-md-4">
+                                            <label for="PostCodeNum" class="col-sm-6 col-6 col-form-label">Post
+                                                code:</label>
+                                            <div class="col-sm-6 col-6">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" style="text-transform: uppercase;"
+                                                    id="PostCodeNum" value="{{PostCodeSh}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-md-4">
+                                            <label for="ZoneNumbern" class="col-sm-6 col-6 col-form-label">Region:
+                                                Zone</label>
+                                            <div class="col-sm-6 col-6">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" style="text-transform: uppercase;"
+                                                    id="ZoneNumbern" value="{{ZoneNumber}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-md-4">
+                                            <label for="DateNum" class="col-sm-3 col-6 col-form-label">Date: </label>
+                                            <div class="col-sm-9 col-6">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" style="text-transform: uppercase;"
+                                                    id="showDateid" value="{{showDate}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div b-show="OrientationOneShowOnPanelKey == 1"
+                                        class="view-info-container roof-one-info row mx-3 my-4">
+                                        <h4 b-show="rooftype1">
+                                            Detail’s roof<span b-show="rooftype2"> One </span>
+                                        </h4>
+                                        <div b-show="rooftype1" class="row col-lg-4 col-md-12 col-sm-12">
+                                            <label for="roofOneTypeShow" class="col-sm-3 col-form-label">Roof
+                                                type:</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="roofOneTypeShow"
+                                                    value="{{rooftype1.name}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="ShadeFactorOne" class="row col-lg-3 col-md-5 col-sm-12 col-12">
+                                            <label for="ShadeFactorOneShow" class="col-sm-8 col-8 col-form-label">Shade
+                                                factor:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="ShadeFactorOneShow"
+                                                    value="{{ShadeFactorOne}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="OrientationOneShowOnPanelKey == 1"
+                                            class="row col-lg-5 col-md-7 col-sm-12 col-12">
+                                            <label for="RoofOrientationDegree"
+                                                class="col-sm-7 col-8 col-form-label">Roof orientation:</label>
+                                            <div class="col-sm-5 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="RoofOrientationDegree"
+                                                    value="{{RoofOneOrientation}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="RoofSlopeOneShowOnPanelKey == 1"
+                                            class="row col-lg-4 col-md-5 col-sm-12 col-12">
+                                            <label for="Form.RoofSlopeOne" class="col-sm-6 col-8 col-form-label">Roof
+                                                slope:</label>
+                                            <div class="col-sm-6 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="FormRoofSlopeOneDegree"
+                                                    value="{{Form.RoofSlopeOne}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="PVOutPutOne" class="row col-lg-3 col-md-7 col-sm-12 col-12">
+                                            <label for="PVOutPutOneNum" class="col-sm-8 col-8 col-form-label">PV
+                                                output:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" ng-model="PVOutPutOne"
+                                                    id="PVOutPutOneNum" value="{{PVOutPutOne}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-lg-5 col-md-12 col-sm-12 col-12">
+                                            <label for="Result-1" class="col-sm-8 col-8 col-form-label">Roof annual AC
+                                                output (kWh):</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Result-1" ng-model="Result1"
+                                                    value="{{Result1}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div b-show="OrientationTwoShowOnPanelKey == 1"
+                                        class="view-info-container roof-two-info row mx-3 my-4">
+                                        <h4>
+                                            Detail’s roof two
+                                        </h4>
+                                        <div b-show="rooftype2" class="row col-lg-4 col-md-12 col-sm-12 col-12">
+                                            <label for="roofTwoTypeShow" class="col-sm-3 col-form-label">Roof
+                                                type:</label>
+                                            <div class="col-sm-9 ">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="roofTwoTypeShow"
+                                                    value="{{rooftype2.name}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="ShadeFactorTwo" class="row col-lg-3 col-md-5 col-sm-12 col-12">
+                                            <label for="ShadeFactorTwoShow" class="col-sm-8 col-8 col-form-label">Shade
+                                                factor:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="ShadeFactorTwoShow"
+                                                    value="{{ShadeFactorTwo}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="OrientationTwoShowOnPanelKey == 1"
+                                            class="row col-lg-5 col-md-7 col-sm-12 col-12">
+                                            <label for="staticRoofDegree" class="col-sm-7 col-8 col-form-label">Roof
+                                                orientation:</label>
+                                            <div class="col-sm-5 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="RoofTwoOrientation"
+                                                    value="{{RoofTwoOrientation}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="RoofSlopeTwoShowOnPanelKey == 1"
+                                            class="row col-lg-4 col-md-5 col-sm-12 col-12">
+                                            <label for="staticRoofDegree" class="col-sm-6 col-8 col-form-label">Roof
+                                                slope:</label>
+                                            <div class="col-sm-6 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Form.RoofSlopeTwo"
+                                                    value="{{Form.RoofSlopeTwo}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="PVOutPutTwo" class="row col-lg-3 col-md-7 col-sm-12 col-12">
+                                            <label for="PVOutPutTwoNum" class="col-sm-8 col-8 col-form-label">PV
+                                                output:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" ng-model="PVOutPutTwo"
+                                                    id="PVOutPutTwoNum" value="{{PVOutPutTwo}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-lg-5 col-md-12 col-sm-12 col-12">
+                                            <label for="Result-2" class="col-sm-8 col-8 col-form-label">Roof Annual AC
+                                                output (kWh):</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Result-2" ng-model="Result2"
+                                                    value="{{Result2}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div b-show="OrientationThreeShowOnPanelKey == 1"
+                                        class="view-info-container roof-three-info row mx-3 mt-10 mb-5">
+                                        <h4>
+                                            Detail’s roof three
+                                        </h4>
+                                        <div b-show="rooftype3" class="row col-lg-4 col-md-12 col-sm-12 col-12">
+                                            <label for="roofThreeTypeShow" class="col-sm-3 col-form-label">Roof
+                                                type:</label>
+                                            <div class="col-sm-9 ">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="roofThreeTypeShow"
+                                                    value="{{rooftype3.name}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="ShadeFactorThree" class="row col-lg-3 col-md-5 col-sm-12 col-12">
+                                            <label for="ShadeFactorThreeShow"
+                                                class="col-sm-8 col-8 col-form-label">Shade factor:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="ShadeFactorThreeShow"
+                                                    value="{{ShadeFactorThree}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="OrientationThreeShowOnPanelKey == 1"
+                                            class="row col-lg-5 col-md-7 col-sm-12 col-12">
+                                            <label for="staticRoofDegree" class="col-sm-7 col-8 col-form-label">Roof
+                                                orientation:</label>
+                                            <div class="col-sm-5 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="RoofThreeOrientation"
+                                                    value="{{RoofThreeOrientation}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="RoofSlopeThreeShowOnPanelKey == 1"
+                                            class="row col-lg-4 col-md-5 col-sm-12 col-12">
+                                            <label for="staticRoofDegree" class="col-sm-6 col-8 col-form-label">Roof
+                                                slope:</label>
+                                            <div class="col-sm-6 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Form.RoofSlopeThree"
+                                                    value="{{Form.RoofSlopeThree}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="PVOutPutThree" class="row col-lg-3 col-md-7 col-sm-12 col-12">
+                                            <label for="PVOutPutThreeNum" class="col-sm-8 col-8 col-form-label">PV
+                                                output:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" ng-model="PVOutPutThree"
+                                                    id="PVOutPutThreeNum" value="{{PVOutPutThree}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-lg-5 col-md-12 col-sm-12 col-12">
+                                            <label for="Result-3" class="col-sm-8 col-8 col-form-label">Roof annual AC
+                                                output (kWh):</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Result-3" ng-model="Result3"
+                                                    value="{{Result3}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div b-show="OrientationFourShowOnPanelKey == 1"
+                                        class="view-info-container roof-four-info row mx-3 my-4">
+                                        <h4>
+                                            Detail’s roof four
+                                        </h4>
+                                        <div b-show="rooftype4" class="row col-lg-4 col-md-12 col-sm-12 col-12">
+                                            <label for="roofFourTypeShow" class="col-sm-3 col-form-label">Roof
+                                                type:</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="roofFourTypeShow"
+                                                    value="{{rooftype4.name}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="ShadeFactorFour" class="row col-lg-3 col-md-5 col-sm-12 col-12">
+                                            <label for="ShadeFactorFourShow" class="col-sm-8 col-8 col-form-label">Shade
+                                                factor:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="ShadeFactorFourShow"
+                                                    value="{{ShadeFactorFour}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="OrientationFourShowOnPanelKey == 1"
+                                            class="row col-lg-5 col-md-7 col-sm-12 col-12">
+                                            <label for="staticRoofDegree" class="col-sm-7 col-8 col-form-label">Roof
+                                                orientation:</label>
+                                            <div class="col-sm-5 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="RoofFourOrientation"
+                                                    value="{{RoofFourOrientation}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="RoofSlopeFourShowOnPanelKey == 1"
+                                            class="row col-lg-4 col-md-5 col-sm-12 col-12">
+                                            <label for="staticRoofDegree" class="col-sm-6 col-8 col-form-label">Roof
+                                                slope:</label>
+                                            <div class="col-sm-6 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Form.RoofSlopeFour"
+                                                    value="{{Form.RoofSlopeFour}}">
+                                            </div>
+                                        </div>
+                                        <div b-show="PVOutPutFour" class="row col-lg-3 col-md-7 col-sm-12 col-12">
+                                            <label for="PVOutPutFourNum" class="col-sm-8 col-8 col-form-label">PV
+                                                OutPut:</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" ng-model="PVOutPutFour"
+                                                    id="PVOutPutFourNum" value="{{PVOutPutFour}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-lg-5 col-md-12 col-sm-12 col-12">
+                                            <label for="Result-4" class="col-sm-8 col-8 col-form-label">Roof annual AC
+                                                output (kWh):</label>
+                                            <div class="col-sm-4 col-4">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Result-4" ng-model="Result4"
+                                                    value="{{Result4}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="view-info-container roof-basic-info row mx-3 my-4">
+                                        <h4></h4>
+                                        <!-- <div class="row col-md-3">
+                                            <label for="PostCodeNum" class="col-sm-6 col-form-label">Post code:</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" onfocus="this.select()"readonly class="form-control-plaintext" style="text-transform: uppercase;" id="PostCodeNum" value="{{PostCodeSh}}">
+                                            </div>
+                                        </div> -->
+                                        <!-- <div b-show="roofcount >= 1" class="row col-md-6">
+                                            <label for="staticRoofNum" class="col-sm-6 col-form-label">Number Of Roofs</label>
+                                            <div class="col-sm-6">
+                                                <input type="text" onfocus="this.select()"readonly class="form-control-plaintext" id="staticRoofNum" value="{{roofcount}}">
+                                            </div>
+                                        </div> -->
+                                        <div class="row row col-md-6">
+                                            <label for="PVOutPutNum" class="col-sm-8 col-7 col-form-label">Output of all
+                                                PV systems:</label>
+                                            <div class="col-sm-4 col-5">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="PVOutPutNum" ng-model="PVOutPut"
+                                                    value="{{PVOutPut}}">
+                                            </div>
+                                        </div>
+                                        <div class="row col-md-6">
+                                            <label for="Result-final" class="col-sm-7 col-7 col-form-label">Annual AC
+                                                output (kWh):</label>
+                                            <div class="col-sm-5 col-5">
+                                                <input type="text" onfocus="this.select()" readonly
+                                                    class="form-control-plaintext" id="Result-final"
+                                                    ng-model="FullResult" value="{{FullResult}}">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- <button b-click="calculateResult()">Calculate Result</button> -->
+                                </div>
+                                <div class="result-footer">
+                                    <p class="printsectionhidden"
+                                        style="text-align: center; margin-top: 0; font-size: .7em;"><a
+                                            href="https://www.gov.uk/electric-vehicle-chargepoint-installers"
+                                            rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank"
+                                            title="Visit Office for Zero Emission Vehicles official website"><img
+                                                alt="ozev Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/OZEV-logo.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Authorised</span></a><a
+                                            href="#" rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank" title="Visit MCS membership page official website"><img
+                                                alt="MCS Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/mcs-certified.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Accreditor</span></a><a
+                                            href="https://www.recc.org.uk/scheme/members/00071225-apn-elec"
+                                            rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank" title="Visit RECC membership page official website"><img
+                                                alt="RECC Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/recc-certified.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Member</span></a><a
+                                            href="https://www.napit.org.uk/member/28447/apn-elec.aspx"
+                                            rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank"
+                                            title="Visit NAPIT Electrical membership page official website"><img
+                                                alt="NAPIT Electrical, PartP Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/napit.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Member</span></a><a
+                                            href="#" rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank" title="Visit TSI membership page official website"><img
+                                                alt="TSI Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/tsi-approved.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Member</span></a><a
+                                            href="#" rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank" title="Deposit and Guarantee Insurance from IWA"><img
+                                                alt="IWA approved Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/IWA_APPROVED.png"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">approved</span></a><a
+                                            href="https://www.trustmark.org.uk/firms/APN-Elec-1537739"
+                                            rel="noopener noreferrer"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"
+                                            target="_blank"
+                                            title="Visit Trust Mark membership page official website"><img
+                                                alt="Trust Mark Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/TrustMark.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Member</span></a><a
+                                            href="#"
+                                            style="display: inline-block; margin: .6%; text-decoration: none; color: #555; width: 9%; min-width: 80px;"><img
+                                                alt="zappi myenergi Logo"
+                                                src="/portals/0/auth-bodies/Signature-Logos/zappi-myenergi-logo.jpg"
+                                                style="width: 100%; min-width: 80px;postition: relative;"><span
+                                                style="border: 0; border-top: 1px dotted #888; display: block;">Member</span></a>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <ul class="list-inline pull-right">
+                                <!-- <li><button type="button" class="btn btn-default prev-step">Previous</button></li> -->
+                                <li><button class="btn btn-success mx-2" id="plusButton">More roof +</button></li>
+                                <li><button class="btn btn-info mx-2" id="downloadPdf">Save pdf</button></li>
+                                <!-- <li><button class="btn btn-primary mx-2" b-click="triggerPrint()">Print this page</button></li> -->
+                                <!-- <button onclick="window.print();">Print Results</button> -->
+                                <!-- <button b-click="printDiv('section-to-print')">Print Results</button> -->
+                                <!-- <button id="print_external">Print external page!</button> -->
+
+
+                                <!-- <li><button type="button" class="btn btn-primary my-3 btn-info-full next-step">Save info</button></li> -->
+                            </ul>
+                        </div>
+                        <!-- <div class="tab-pane" role="tabpanel" id="complete">
+
+                            <button b-click="printResult('result')">Print div</button>
+                            <script>
+                                function printResult(result-details) {
+                                    debugger
+                                    var printContents = document.getElementById(result-details).innerHTML;
+                                    var originalContents = document.body.innerHTML;
+                                    document.body.innerHTML = printContents;
+                                    window.print();
+                                    document.body.innerHTML = originalContents;
+                                }
+                            </script>
+                            <div class="clearfix"></div>
+                        </div> -->
+
+                </form>
+            </div>
+        </section>
+        <div class="neomorphsm-container col-md-3 py-5 my-5">
+            <div class="neomorphsm-header">
+                <h4>Solar calculator details</h4>
+            </div>
+            <div class="neomorphsm-body">
+                <div b-show="roofcount >= 1" class="mb-3 row">
+                    <label for="staticRoofNum" class="col-sm-7 col-form-label">Number of roofs:</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="staticRoofNum" value="{{roofcount}}">
+                    </div>
+                </div>
+                <div b-show="PostCode" class="row">
+                    <label for="PostCodeNum" class="col-sm-7 col-form-label">Post code:</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            style="text-transform: uppercase;" id="PostCodeNum" value="{{PostCodeSh}}">
+                    </div>
+                </div>
+                <div b-show="ZoneNumber" class="row">
+                    <label for="ZoneNumber" class="col-sm-7 col-form-label">Region: Zone</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            style="text-transform: uppercase;" id="ZoneNumber" value="{{ZoneNumber}}">
+                    </div>
+                </div>
+
+                <div b-show="PVOutPut" class="row">
+                    <label for="PVOutPutNumb" class="col-sm-7 col-form-label">Output of all PV systems:</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            ng-model="PVOutPut" id="PVOutPutNumb" value="{{PVOutPut}}">
+                    </div>
+                </div>
+                <div b-show="FullResult" class="row">
+                    <label for="FullResultNumb" class="col-sm-7 col-form-label">Annual AC output (kWh):</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            ng-model="FullResult" id="FullResultNumb" value="{{FullResult}}">
+                    </div>
+                </div>
+                <hr style="border:0;border-top:1px dotted #565656;width:92%;" />
+                <h5 b-show="OrientationOneShowOnPanelKey == 1">
+                    Detail’s roof<span b-show="rooftype2"> One </span>
+                </h5>
+                <div b-show="OrientationOneShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof orientation</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="RoofOrientationDegree" value="{{RoofOneOrientation}}">
+                    </div>
+                </div>
+                <div b-show="PVOutPutOne" class="row">
+                    <label for="PVOutPutNum1" class="col-sm-7 col-form-label">Output of roof PV systems</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="PVOutPutNum1" value="{{PVOutPutOne}}">
+                    </div>
+                </div>
+                <div b-show="ShadeFactorOne" class="row">
+                    <label for="ShadeFactorOneShow" class="col-sm-7 col-form-label">Shade factor roof</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="ShadeFactorOneShow" value="{{ShadeFactorOne}}">
+                    </div>
+                </div>
+                <div b-show="rooftype1" class="row">
+                    <label for="roofOneTypeShow" class="col-sm-4 col-form-label">Roof type</label>
+                    <div class="col-sm-8">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="roofOneTypeShow" value="{{rooftype1.name}}">
+                    </div>
+                </div>
+                <div b-show="RoofSlopeOneShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof slope</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="FormRoofSlopeOneDegrees" value="{{Form.RoofSlopeOne}}">
+                    </div>
+                </div>
+                <div b-show="Result1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Annual AC output (kWh):</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            ng-model="Result1" id="FormResult1" value="{{Result1}}">
+                    </div>
+                    <hr style="border:0;border-top:1px dotted #565656;width:92%;" />
+                </div>
+                <h4 b-show="OrientationTwoShowOnPanelKey == 1">
+                    Detail’s roof two
+                </h4>
+                <div b-show="OrientationTwoShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof orientation</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="RoofTwoOrientation" value="{{RoofTwoOrientation}}">
+                    </div>
+                </div>
+                <div b-show="PVOutPutTwo" class="row">
+                    <label for="PVOutPutNum2" class="col-sm-7 col-form-label">Output of roof PV systems</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="PVOutPutNum2" value="{{PVOutPutTwo}}">
+                    </div>
+                </div>
+                <div b-show="ShadeFactorTwo" class="row">
+                    <label for="ShadeFactorTwoShow" class="col-sm-7 col-form-label">Shade factor roof</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="ShadeFactorTwoShow" value="{{ShadeFactorTwo}}">
+                    </div>
+                </div>
+                <div b-show="rooftype2" class="row">
+                    <label for="roofTwoTypeShow" class="col-sm-4 col-form-label">Roof type</label>
+                    <div class="col-sm-8">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="roofTwoTypeShow" value="{{rooftype2.name}}">
+                    </div>
+                </div>
+                <div b-show="RoofSlopeTwoShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof slope</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="Form.RoofSlopeTwo" value="{{Form.RoofSlopeTwo}}">
+                    </div>
+                </div>
+                <div b-show="Result2" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Annual AC output (kWh):</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            ng-model="Result2" id="FormResult2" value="{{Result2}}">
+                    </div>
+                    <hr style="border:0;border-top:1px dotted #565656;width:92%;" />
+                </div>
+                <h4 b-show="OrientationThreeShowOnPanelKey == 1">
+                    Detail’s roof three
+                </h4>
+                <div b-show="OrientationThreeShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof orientation</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="RoofThreeOrientation" value="{{RoofThreeOrientation}}">
+                    </div>
+                </div>
+                <div b-show="PVOutPutThree" class="row">
+                    <label for="PVOutPutNum3" class="col-sm-7 col-form-label">Output of roof PV systems</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="PVOutPutNum3" value="{{PVOutPutThree}}">
+                    </div>
+                </div>
+                <div b-show="ShadeFactorThree" class="row">
+                    <label for="ShadeFactorThreeShow" class="col-sm-7 col-form-label">Shade factor roof</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="ShadeFactorThreeShow" value="{{ShadeFactorThree}}">
+                    </div>
+                </div>
+                <div b-show="rooftype3" class="row">
+                    <label for="roofThreeTypeShow" class="col-sm-4 col-form-label">Roof type</label>
+                    <div class="col-sm-8">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="roofThreeTypeShow" value="{{rooftype3.name}}">
+                    </div>
+                </div>
+                <div b-show="RoofSlopeThreeShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof slope</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="Form.RoofSlopeThree" value="{{Form.RoofSlopeThree}}">
+                    </div>
+                </div>
+                <div b-show="Result3" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Annual AC output (kWh):</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            ng-model="Result3" id="FormResult3" value="{{Result3}}">
+                    </div>
+                    <hr style="border:0;border-top:1px dotted #565656;width:92%;" />
+                </div>
+                <h4 b-show="OrientationFourShowOnPanelKey == 1">
+                    Detail’s roof four
+                </h4>
+                <div b-show="OrientationFourShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof orientation</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="RoofFourOrientation" value="{{RoofFourOrientation}}">
+                    </div>
+                </div>
+                <div b-show="PVOutPutFour" class="row">
+                    <label for="PVOutPutNum4" class="col-sm-7 col-form-label">Output of roof PV systems</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="PVOutPutNum4" value="{{PVOutPutFour}}">
+                    </div>
+                </div>
+                <div b-show="ShadeFactorFour" class="row">
+                    <label for="ShadeFactorFourShow" class="col-sm-7 col-form-label">Shade factor roof</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="ShadeFactorFourShow" value="{{ShadeFactorFour}}">
+                    </div>
+                </div>
+                <div b-show="rooftype4" class="row">
+                    <label for="roofFourTypeShow" class="col-sm-4 col-form-label">Roof type</label>
+                    <div class="col-sm-8">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="roofFourTypeShow" value="{{rooftype4.name}}">
+                    </div>
+                </div>
+                <div b-show="RoofSlopeFourShowOnPanelKey == 1" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Roof slope</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            id="Form.RoofSlopeFour" value="{{Form.RoofSlopeFour}}">
+                    </div>
+                </div>
+                <div b-show="Result4" class="row">
+                    <label for="staticRoofDegree" class="col-sm-7 col-form-label">Annual AC output (kWh):</label>
+                    <div class="col-sm-5">
+                        <input type="text" onfocus="this.select()" readonly class="form-control-plaintext"
+                            ng-model="Result4" id="FormResult4" value="{{Result4}}">
+                    </div>
+                    <hr style="border:0;border-top:1px dotted #565656;width:92%;" />
+                </div>
+            </div>
+            <div class="neomorphsm-footer">
+                <span class="fw-light fs-6 ">Developed by APN Elec</span>
+                <br>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- The modals -->
+<div id="roofslope" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Solar Energy Calculator - Roof slope</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>If you have a flat roof, panels can be angled when installed. The optimum angle for solar power
+                    collection in the UK is 35°.
+
+                    One way of determining the slope of your roof is to look at the rafters on your attic. Use the
+                    default of 30° if you are unsure as this is the typical for a UK roof.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="shading" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Solar Energy Calculator - Overshading</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Shading from nearby obstacles, such as trees and buildings, will reduce the solar energy that reaches
+                    your PV panels, and therefore reduce the electricity generated.
+
+                    Ideally you would only install panels on roofs with no nearby obstructions, but that isn’t always
+                    possible.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="roofdirection" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Solar Energy Calculator - Roof direction</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>You can use the map to see which way the best side of your roof is facing. The closer you can be the
+                    better but it doesn't have to be exact. The best direction for solar power collection in the UK is
+                    south facing.
+
+                    If you have a flat roof your panels can face any direction.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="installationsize" class="modal fade" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Solar Energy Calculator - Installation size</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Solar electricity systems are given a rating in kilowatts peak (kWp). This is the rate at which they
+                    generate electricity at peak performance, for example at noon on a sunny day. The capacity (kWp) of
+                    a domestic system will vary depending on how much a customer wants to spend and the roof area
+                    available to accommodate the panels.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary my-3">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>

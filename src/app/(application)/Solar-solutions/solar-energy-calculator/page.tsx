@@ -1,11 +1,15 @@
-import React from 'react';
+import InstallationForm from '@/components/solar-calculator/InstallationForm';
 
-const SolarEnergyCalculatorPage: React.FC = () => {
+export default function SolarCalculatorPage() {
   return (
-    <div >
-      <h1>SolarEnergyCalculatorPage!</h1>
+    <div className="container mt-5">
+      <h1 className="mb-4">Solar Energy Calculator</h1>
+      <p className="lead mb-4">
+        Use our solar energy calculator to estimate the performance of your solar PV system.
+        Enter your details and roof information to get started.
+      </p>
+      
+      <InstallationForm />
     </div>
   );
-};
-
-export default SolarEnergyCalculatorPage;
+} 
