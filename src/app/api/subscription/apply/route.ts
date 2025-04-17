@@ -28,6 +28,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
+    const contentType = request.headers.get('content-type') || '';
+    
+    // Handle JSON requests (from dashboard/apply-subscription page)
+    if (contentType.includes('application/json')) {
+      const json = await request.json();
+      
+      // Create subscription application from JSON data
+      const application = await prisma.subscriptionApplication.create({
+        data: {
+          userId: session.user.id,
+          subscriptionType: json.plan || 'basic',
+          receiptCode: json.licenseNumber || '',
+          notes: `Company: ${json.companyName || ''}\nExperience: ${json.experience || ''}\nSpecialization: ${json.specialization || ''}\nReason: ${json.reason || ''}`,
+          status: 'pending',
+          receiptPhotoPath: '/uploads/default/receipt_placeholder.png', // Add default receipt path for JSON submissions
+          brandPhotoPath: null
+        }
+      });
+      
+      return NextResponse.json({ 
+        success: true, 
+        application 
+      });
+    }
+    
+    // Handle FormData requests (from SubscriptionForm component)
     const formData = await request.formData();
     
     // Get form fields

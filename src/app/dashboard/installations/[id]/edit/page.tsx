@@ -30,7 +30,7 @@ interface Installation {
   };
 }
 
-export default function EditInstallationPage({ params }: { params: { id: string } }) {
+export default function EditInstallationPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const { data: session, status } = useSession({
     required: true,
@@ -55,11 +55,23 @@ export default function EditInstallationPage({ params }: { params: { id: string 
     roofTypes: {},
     results: {},
   });
+  const [installationId, setInstallationId] = useState<string | null>(null);
+  
+  // Extract ID from params on mount
+  useEffect(() => {
+    async function getParams() {
+      const { id } = await params;
+      setInstallationId(id);
+    }
+    getParams();
+  }, [params]);
   
   useEffect(() => {
+    if (!installationId) return;
+    
     const fetchInstallation = async () => {
       try {
-        const response = await fetch(`/api/installations/${params.id}`);
+        const response = await fetch(`/api/installations/${installationId}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch installation');
@@ -87,7 +99,7 @@ export default function EditInstallationPage({ params }: { params: { id: string 
     };
     
     fetchInstallation();
-  }, [params.id]);
+  }, [installationId]);
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -111,7 +123,7 @@ export default function EditInstallationPage({ params }: { params: { id: string 
     setError(null);
     
     try {
-      const response = await fetch(`/api/installations/${params.id}`, {
+      const response = await fetch(`/api/installations/${installationId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +136,7 @@ export default function EditInstallationPage({ params }: { params: { id: string 
         throw new Error(errorData.error || 'Failed to update installation');
       }
       
-      router.push(`/dashboard/installations/${params.id}`);
+      router.push(`/dashboard/installations/${installationId}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');
       setSaving(false);
@@ -147,7 +159,7 @@ export default function EditInstallationPage({ params }: { params: { id: string 
     <div className="container">
       <div className="d-flex justify-content-between align-items-center mb-4">
         <h2>Edit Installation</h2>
-        <Link href={`/dashboard/installations/${params.id}`} className="btn btn-secondary">
+        <Link href={`/dashboard/installations/${installationId}`} className="btn btn-secondary">
           Cancel
         </Link>
       </div>
@@ -228,7 +240,7 @@ export default function EditInstallationPage({ params }: { params: { id: string 
             </div>
             
             <div className="d-grid gap-2 d-md-flex justify-content-md-end">
-              <Link href={`/dashboard/installations/${params.id}`} className="btn btn-secondary me-md-2">
+              <Link href={`/dashboard/installations/${installationId}`} className="btn btn-secondary me-md-2">
                 Cancel
               </Link>
               <button type="submit" className="btn btn-primary" disabled={saving}>

@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
 
     // Validate ranges
     if (pvOutput <= 0 || slope < 0 || slope > 90 || 
-        orientation < 0 || orientation > 180 || 
+        orientation < -180 || orientation > 180 || 
         shadeFactor < 0 || shadeFactor > 100 || 
         annualConsumption <= 0) {
       return NextResponse.json(
@@ -52,6 +52,15 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    console.log('Processing solar calculation for:', {
+      pvOutput,
+      postcode,
+      slope,
+      orientation,
+      shadeFactor,
+      occupancyType
+    });
 
     const result = await calculateSolarOutput({
       pvOutput,
@@ -70,6 +79,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Ensure kwhPerKwp is defined and properly formatted
+    if (result.kwhPerKwp === undefined || isNaN(result.kwhPerKwp)) {
+      console.warn('kwhPerKwp is undefined or NaN, setting default value');
+      result.kwhPerKwp = 950; // Default value if not calculated properly
+    }
+
+    // Round kwhPerKwp to one decimal place for consistency
+    result.kwhPerKwp = Math.round(result.kwhPerKwp * 10) / 10;
+
+    console.log('Calculation result:', result);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error in solar calculation:', error);

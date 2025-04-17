@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 export async function GET(
   request: NextRequest,
@@ -9,18 +9,21 @@ export async function GET(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
+
     const { id: paramId } = await params;
     const id = parseInt(paramId);
-    
+
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid installation ID' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid installation ID" },
+        { status: 400 }
+      );
     }
-    
+
     // Get the installation with related data
     const installation = await prisma.installation.findUnique({
       where: { id },
@@ -32,7 +35,7 @@ export async function GET(
             lastName: true,
             mobile: true,
             email: true,
-          }
+          },
         },
         address: {
           select: {
@@ -43,30 +46,33 @@ export async function GET(
             telephone: true,
             buildingUse: true,
             propertyType: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
-    
+
     if (!installation) {
-      return NextResponse.json({ error: 'Installation not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Installation not found" },
+        { status: 404 }
+      );
     }
-    
+
     // Check if the user is authorized to view this installation
     const isAdmin = session.user.isAdmin;
     const installer = await prisma.installer.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
     });
-    
+
     if (!isAdmin && (!installer || installer.id !== installation.installerId)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    
+
     return NextResponse.json(installation);
   } catch (error) {
-    console.error('Error fetching installation:', error);
+    console.error("Error fetching installation:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch installation' },
+      { error: "Failed to fetch installation" },
       { status: 500 }
     );
   }
@@ -74,42 +80,52 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    const id = parseInt(params.id);
-    
+
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
+
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid installation ID' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid installation ID" },
+        { status: 400 }
+      );
     }
-    
+
     // Check if the installation exists
     const existingInstallation = await prisma.installation.findUnique({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!existingInstallation) {
-      return NextResponse.json({ error: 'Installation not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Installation not found" },
+        { status: 404 }
+      );
     }
-    
+
     // Check if the user is authorized to update this installation
     const isAdmin = session.user.isAdmin;
     const installer = await prisma.installer.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
     });
-    
-    if (!isAdmin && (!installer || installer.id !== existingInstallation.installerId)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+
+    if (
+      !isAdmin &&
+      (!installer || installer.id !== existingInstallation.installerId)
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    
+
     const data = await request.json();
-    
+
     // Update the installation
     const updatedInstallation = await prisma.installation.update({
       where: { id },
@@ -133,7 +149,7 @@ export async function PUT(
             lastName: true,
             mobile: true,
             email: true,
-          }
+          },
         },
         address: {
           select: {
@@ -144,16 +160,16 @@ export async function PUT(
             telephone: true,
             buildingUse: true,
             propertyType: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
-    
+
     return NextResponse.json(updatedInstallation);
   } catch (error) {
-    console.error('Error updating installation:', error);
+    console.error("Error updating installation:", error);
     return NextResponse.json(
-      { error: 'Failed to update installation' },
+      { error: "Failed to update installation" },
       { status: 500 }
     );
   }
@@ -161,51 +177,61 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-    
+
     if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    
-    const id = parseInt(params.id);
-    
+
+    const { id: paramId } = await params;
+    const id = parseInt(paramId);
+
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid installation ID' }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid installation ID" },
+        { status: 400 }
+      );
     }
-    
+
     // Check if the installation exists
     const existingInstallation = await prisma.installation.findUnique({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!existingInstallation) {
-      return NextResponse.json({ error: 'Installation not found' }, { status: 404 });
+      return NextResponse.json(
+        { error: "Installation not found" },
+        { status: 404 }
+      );
     }
-    
+
     // Check if the user is authorized to delete this installation
     const isAdmin = session.user.isAdmin;
     const installer = await prisma.installer.findUnique({
-      where: { userId: session.user.id }
+      where: { userId: session.user.id },
     });
-    
-    if (!isAdmin && (!installer || installer.id !== existingInstallation.installerId)) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 });
+
+    if (
+      !isAdmin &&
+      (!installer || installer.id !== existingInstallation.installerId)
+    ) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
-    
+
     // Delete the installation
     await prisma.installation.delete({
-      where: { id }
+      where: { id },
     });
-    
+
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting installation:', error);
+    console.error("Error deleting installation:", error);
     return NextResponse.json(
-      { error: 'Failed to delete installation' },
+      { error: "Failed to delete installation" },
       { status: 500 }
     );
   }
-} 
+}

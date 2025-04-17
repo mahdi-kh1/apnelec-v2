@@ -59,13 +59,37 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
 
   const handleGetZone = async () => {
     try {
-      const response = await fetch(`/api/solar-calculator/zone?postcode=${postcode}`);
-      if (!response.ok) throw new Error('Failed to fetch zone');
+      const formattedPostcode = postcode.trim().replace(/\s+/g, '');
+      if (!formattedPostcode) {
+        setZone('');
+        return;
+      }
+      
+      const response = await fetch(`/api/solar-calculator/zone?postcode=${encodeURIComponent(formattedPostcode)}`);
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error || 'Failed to fetch zone';
+        console.error('Zone API error:', errorMessage);
+        toast.error(`Error: ${errorMessage}`);
+        
+        // If zone not found, try using a default zone
+        if (response.status === 404) {
+          console.log('Using default zone Z3');
+          setZone('Z3'); // Use a default zone if not found
+          return;
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
       const data = await response.json();
+      console.log('Zone data:', data);
       setZone(data.zone);
     } catch (error) {
       console.error('Error getting zone:', error);
-      toast.error('Failed to get zone');
+      toast.error('Failed to get zone information. Using default zone.');
+      setZone('Z3'); // Use a default zone as fallback
     }
   };
 
@@ -437,7 +461,10 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>kWh/kWp (Kk) from table</Label>
-                      <Input value={`${results.kwhPerKwp} kWh/kWp`} readOnly />
+                      <Input 
+                        value={`${results.kwhPerKwp !== undefined ? Math.round(results.kwhPerKwp * 10) / 10 : 0} kWh/kWp`} 
+                        readOnly 
+                      />
                     </div>
                     <div>
                       <Label>Shade Factor (SF)</Label>

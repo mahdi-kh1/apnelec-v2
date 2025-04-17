@@ -13,7 +13,7 @@ import { formatDate } from '@/lib/utils';
 export default async function InstallerPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await getServerSession(authOptions);
   
@@ -21,7 +21,8 @@ export default async function InstallerPage({
     redirect('/dashboard');
   }
 
-  const installerId = parseInt(params.id);
+  const { id } = await params;
+  const installerId = parseInt(id);
   if (isNaN(installerId)) {
     redirect('/dashboard/installers');
   }

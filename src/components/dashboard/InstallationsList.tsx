@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
-import dynamic from 'next/dynamic';
 
 interface Installation {
   id: number;
@@ -46,14 +45,6 @@ interface Installation {
 interface InstallationsListProps {
   isAdmin?: boolean;
 }
-
-// Dynamically import jsPDF to avoid SSR issues
-const JsPdfImport = dynamic(() => import('jspdf').then(mod => mod.default), { 
-  ssr: false 
-});
-const AutoTableImport = dynamic(() => import('jspdf-autotable').then(mod => mod.default), { 
-  ssr: false 
-});
 
 export default function InstallationsList({ isAdmin }: InstallationsListProps) {
   const { data: session } = useSession();

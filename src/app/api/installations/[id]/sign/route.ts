@@ -13,7 +13,7 @@ interface SignatureData {
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -21,7 +21,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const installationId = parseInt(params.id);
+    const { id } = await params;
+    const installationId = parseInt(id);
     if (isNaN(installationId)) {
       return NextResponse.json({ error: 'Invalid installation ID' }, { status: 400 });
     }

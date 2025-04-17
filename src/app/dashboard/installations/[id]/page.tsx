@@ -37,7 +37,7 @@ interface Installation {
   };
 }
 
-export default function InstallationPage({ params }: { params: { id: string } }) {
+export default function InstallationPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession({
     required: true,
     onUnauthenticated() {
@@ -48,11 +48,23 @@ export default function InstallationPage({ params }: { params: { id: string } })
   const [installation, setInstallation] = useState<Installation | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [installationId, setInstallationId] = useState<string | null>(null);
+  
+  // Extract ID from params on mount
+  useEffect(() => {
+    async function getParams() {
+      const { id } = await params;
+      setInstallationId(id);
+    }
+    getParams();
+  }, [params]);
   
   useEffect(() => {
+    if (!installationId) return;
+    
     const fetchInstallation = async () => {
       try {
-        const response = await fetch(`/api/installations/${params.id}`);
+        const response = await fetch(`/api/installations/${installationId}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch installation');
@@ -68,7 +80,7 @@ export default function InstallationPage({ params }: { params: { id: string } })
     };
     
     fetchInstallation();
-  }, [params.id]);
+  }, [installationId]);
   
   if (status === 'loading' || loading) {
     return <div className="loading">Loading...</div>;
@@ -92,7 +104,7 @@ export default function InstallationPage({ params }: { params: { id: string } })
           <Link href="/dashboard/installations" className="btn btn-secondary me-2">
             Back to Installations
           </Link>
-          <Link href={`/dashboard/installations/${params.id}/edit`} className="btn btn-warning me-2">
+          <Link href={`/dashboard/installations/${installationId}/edit`} className="btn btn-warning me-2">
             Edit
           </Link>
           {installation.pdfPath && (

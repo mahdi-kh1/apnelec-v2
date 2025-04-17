@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -17,7 +17,8 @@ export async function POST(
       );
     }
     
-    const installerId = parseInt(params.id);
+    const { id } = await params;
+    const installerId = parseInt(id);
     if (isNaN(installerId)) {
       return NextResponse.json(
         { error: 'Invalid installer ID' },
@@ -50,7 +51,7 @@ export async function POST(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -62,7 +63,8 @@ export async function PUT(
       );
     }
     
-    const installerId = parseInt(params.id);
+    const { id } = await params;
+    const installerId = parseInt(id);
     if (isNaN(installerId)) {
       return NextResponse.json(
         { error: 'Invalid installer ID' },

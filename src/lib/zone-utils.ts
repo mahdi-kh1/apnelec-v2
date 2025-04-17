@@ -68,7 +68,13 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
     // Clamp slope between 0 and 90 degrees
     const clampedSlope = Math.max(0, Math.min(90, roundedSlope));
     
-    const positiveOrientation = Math.abs(orientation);
+    // Make sure orientation is in the correct range (-180 to 180)
+    let orientationValue = orientation;
+    if (orientationValue < -180) orientationValue = -180;
+    if (orientationValue > 180) orientationValue = 180;
+    
+    // Convert to positive for lookup (Excel only has 0-180)
+    const positiveOrientation = Math.abs(orientationValue);
     const roundedOrientation = Math.round(positiveOrientation / 5) * 5;
     // Clamp orientation between 0 and 180 degrees
     const clampedOrientation = Math.min(180, roundedOrientation);
@@ -76,15 +82,30 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
     // Check if we have the data in cache
     const cacheKey = `${zone}_${clampedSlope}_${clampedOrientation}`;
     if (irradianceDataCache[cacheKey] !== undefined) {
+      console.log(`Using cached irradiance data for ${cacheKey}: ${irradianceDataCache[cacheKey]}`);
       return irradianceDataCache[cacheKey];
     }
     
     console.log(`Looking up irradiance data for zone: ${zone}, slope: ${clampedSlope}, orientation: ${clampedOrientation}`);
     
-    // Read the Excel file
+    // Check if the Excel file exists
     const excelPath = path.join(process.cwd(), 'documents', 'Irradiance-Datasets.xlsx');
-    const workbook = new ExcelJS.Workbook();
-    await workbook.xlsx.readFile(excelPath);
+    try {
+      await fs.access(excelPath);
+    } catch (error) {
+      console.error(`Error accessing Irradiance-Datasets.xlsx: ${error}`);
+      return 950; // Default value if file doesn't exist
+    }
+    
+    // Read the Excel file
+    let workbook;
+    try {
+      workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.readFile(excelPath);
+    } catch (error) {
+      console.error(`Error reading Excel file: ${error}`);
+      return 950; // Default value
+    }
     
     // The first worksheet contains the data
     const worksheet = workbook.worksheets[0];
@@ -101,7 +122,14 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // Skip header row
       
-      const rowSlope = Number(row.getCell(1).value);
+      let rowSlope;
+      try {
+        rowSlope = Number(row.getCell(1).value);
+      } catch (error) {
+        console.warn(`Error reading slope value in row ${rowNumber}: ${error}`);
+        return; // Skip this row
+      }
+      
       if (!isNaN(rowSlope)) {
         if (rowSlope === clampedSlope) {
           targetRow = row;
@@ -123,19 +151,34 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
     // Headers are in 5-degree increments from 0 to 180
     const orientationStep = 5;
     const orientationIndex = Math.round(clampedOrientation / orientationStep) + 2; // +2 because first column is slope
-    const irradianceCell = targetRow.getCell(orientationIndex);
+    
+    let irradianceCell;
+    try {
+      irradianceCell = targetRow.getCell(orientationIndex);
+    } catch (error) {
+      console.error(`Error accessing cell for orientation ${clampedOrientation}: ${error}`);
+      return 950; // Default value
+    }
     
     if (!irradianceCell || irradianceCell.value === null) {
       console.error(`No data found for orientation ${clampedOrientation}, using default value`);
       return 950; // Default value
     }
     
-    const irradiance = Number(irradianceCell.value);
+    let irradiance;
+    try {
+      irradiance = Number(irradianceCell.value);
+    } catch (error) {
+      console.error(`Error converting irradiance value to number: ${error}`);
+      return 950; // Default value
+    }
     
     if (isNaN(irradiance)) {
       console.error(`Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`);
       return 950; // Default value
     }
+    
+    console.log(`Successfully retrieved irradiance value: ${irradiance}`);
     
     // Cache the result
     irradianceDataCache[cacheKey] = irradiance;

@@ -7,7 +7,7 @@ import EditSubscriptionForm from '@/components/installers/EditSubscriptionForm';
 export default async function EditSubscriptionPage({
   params
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await getServerSession(authOptions);
   
@@ -15,7 +15,8 @@ export default async function EditSubscriptionPage({
     redirect('/dashboard');
   }
 
-  const installerId = parseInt(params.id);
+  const { id } = await params;
+  const installerId = parseInt(id);
   if (isNaN(installerId)) {
     redirect('/dashboard/installers');
   }

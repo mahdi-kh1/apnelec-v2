@@ -6,7 +6,7 @@ import { generateSignatureToken } from '@/lib/signature';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -19,7 +19,7 @@ export async function POST(
     }
     
     // Convert the params.id to a number after ensuring it's defined
-    const { id } = params;
+    const { id } = await params;
     const installationId = parseInt(id);
     
     if (isNaN(installationId)) {
@@ -68,6 +68,15 @@ export async function POST(
         where: { id: installationId },
         data: {
           status: 'SIGNATURE_NEEDED'
+        },
+        include: {
+          installer: {
+            select: {
+              id: true,
+              userId: true,
+              brandPhotoPath: true
+            }
+          }
         }
       });
     }

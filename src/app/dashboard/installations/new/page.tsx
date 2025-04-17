@@ -15,11 +15,6 @@ import Link from 'next/link';
 import SolarCalculator from '@/components/installations/SolarCalculator';
 import dynamic from 'next/dynamic';
 
-// Dynamically import jsPDF to avoid SSR issues
-const JsPdfImport = dynamic(() => import('jspdf').then(mod => mod.default), { 
-  ssr: false 
-});
-
 interface Customer {
   id: number;
   firstName: string;
@@ -65,8 +60,17 @@ export default function NewInstallationPage() {
     installation: {
       postcode: '',
       zone: '',
+      region: '',
+      kwhPerKwp: 0,
       totalPVOutput: 0,
       annualACOutput: 0,
+      occupancyArchetype: '',
+      annualElectricityConsumption: 0,
+      expectedSelfConsumption: 0,
+      gridIndependence: 0,
+      batteryCapacity: 0,
+      expectedSelfConsumptionWithBattery: 0,
+      gridIndependenceWithBattery: 0,
       roofDetails: {
         type: '',
         orientation: 0,
@@ -190,6 +194,10 @@ export default function NewInstallationPage() {
     // Separate the data for different parts of the form
     const totalPVOutput = results.installedCapacity || results.pvOutput || 0;
     const annualACOutput = results.estimatedAnnualOutput || results.annualACOutput || 0;
+    console.log('Total batteryCapacity:', results.batteryCapacity);
+    
+    // Set a default batteryCapacity value if undefined or 0
+    // const batteryCapacity = results.batteryCapacity !== undefined ? results.batteryCapacity : 5;
     
     setFormData(prev => ({
       ...prev,
@@ -197,8 +205,17 @@ export default function NewInstallationPage() {
         ...prev.installation,
         postcode: prev.installation.postcode || prev.customer.address.postcode,
         zone: results.zone || '',
+        region: results.region || '',
+        kwhPerKwp: results.kwhPerKwp || 0,
         totalPVOutput: totalPVOutput,
         annualACOutput: annualACOutput,
+        occupancyArchetype: results.occupancyArchetype || '',
+        annualElectricityConsumption: results.annualElectricityConsumption || 3500,
+        expectedSelfConsumption: results.expectedSelfConsumption || 0,
+        gridIndependence: results.gridIndependence || 0,
+        batteryCapacity: results.batteryCapacity,
+        expectedSelfConsumptionWithBattery: results.expectedSelfConsumptionWithBattery || 0,
+        gridIndependenceWithBattery: results.gridIndependenceWithBattery || 0,
         roofDetails: {
           type: results.roofDetails?.type || '',
           orientation: results.roofDetails?.orientation || results.orientation || 0,
@@ -274,7 +291,6 @@ export default function NewInstallationPage() {
       setLoading(false);
     }
   };
-
   return (
     <div className="container mx-auto py-6">
       <div className="flex items-center mb-6">
@@ -548,7 +564,7 @@ export default function NewInstallationPage() {
                     <h3 className="text-lg font-semibold">D. Estimated PV Self-Consumption - With EESS</h3>
                     <div className="grid grid-cols-2 gap-4 mt-2">
                       <div>
-                        <p><strong>Assumed usable capacity of electrical energy storage device:</strong> {formData.installation.batteryCapacity || 'N/A'} kWh</p>
+                        <p><strong>Assumed usable capacity of electrical energy storage device:</strong> {formData.installation.batteryCapacity ?? 'N/A'} kWh</p>
                       </div>
                       <div>
                         <p><strong>Expected solar PV self-consumption (With EESS):</strong> {formData.installation.expectedSelfConsumptionWithBattery || 'N/A'} kWh</p>
@@ -644,7 +660,7 @@ export default function NewInstallationPage() {
                             startY: tableEndY3 + 3,
                             head: [['Parameter', 'Value']],
                             body: [
-                              ['Assumed usable capacity of electrical energy storage device', `${formData.installation.batteryCapacity || 'N/A'} kWh`],
+                              ['Assumed usable capacity of electrical energy storage device', `${formData.installation.batteryCapacity.toFixed(1)} kWh`],
                               ['Expected solar PV self-consumption (With EESS)', `${formData.installation.expectedSelfConsumptionWithBattery || 'N/A'} kWh`],
                               ['Grid electricity independence / Self-sufficiency (with EESS)', `${formData.installation.gridIndependenceWithBattery || 'N/A'}%`],
                             ],
