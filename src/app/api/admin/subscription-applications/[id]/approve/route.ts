@@ -55,6 +55,21 @@ export async function POST(
 
     // Get brand photo path from application
     const brandPhotoPath = application.brandPhotoPath;
+    
+    // Set the end date based on subscription type
+    const today = new Date();
+    let endDate = new Date();
+    
+    if (application.subscriptionType === 'monthly') {
+      // Add 1 month
+      endDate.setMonth(today.getMonth() + 1);
+    } else if (application.subscriptionType === 'annual') {
+      // Add 1 year
+      endDate.setFullYear(today.getFullYear() + 1);
+    } else {
+      // Default to 1 year
+      endDate.setFullYear(today.getFullYear() + 1);
+    }
 
     // Create or update the installer record
     const installer = await prisma.installer.findUnique({
@@ -74,9 +89,9 @@ export async function POST(
       await prisma.subscription.create({
         data: {
           installerId: newInstaller.id,
-          startDate: new Date(),
-          endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-          plan: 'monthly',
+          startDate: today,
+          endDate: endDate,
+          plan: application.subscriptionType,
           type: application.subscriptionType,
           isActive: true,
           createdByUserId: session.user.id,
@@ -102,7 +117,8 @@ export async function POST(
         await prisma.subscription.update({
           where: { id: subscription.id },
           data: {
-            endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+            endDate: endDate,
+            plan: application.subscriptionType,
             type: application.subscriptionType,
             isActive: true,
             updatedByUserId: session.user.id,
@@ -113,9 +129,9 @@ export async function POST(
         await prisma.subscription.create({
           data: {
             installerId: installer.id,
-            startDate: new Date(),
-            endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-            plan: 'monthly',
+            startDate: today,
+            endDate: endDate,
+            plan: application.subscriptionType,
             type: application.subscriptionType,
             isActive: true,
             createdByUserId: session.user.id,

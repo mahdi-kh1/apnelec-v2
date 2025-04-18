@@ -574,6 +574,7 @@ export default function NewInstallationPage() {
                       </div>
                     </div>
                   </div>
+                  
 
                   <div className="mt-6">
                     <Button 

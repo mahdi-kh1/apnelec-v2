@@ -34,8 +34,10 @@ export async function GET() {
         const endDate = new Date(subscriptionData.endDate);
         const today = new Date();
         
+        // Calculate days remaining based on today and end date
         const daysRemaining = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
+        // Create a properly formatted subscription object for the frontend
         subscription = {
           id: subscriptionData.id,
           startDate: startDate.toISOString(),
@@ -43,6 +45,10 @@ export async function GET() {
           plan: subscriptionData.plan,
           type: subscriptionData.type,
           daysRemaining: daysRemaining > 0 ? daysRemaining : 0,
+          // Add calculated total days for progress bar
+          totalDays: subscriptionData.plan === "monthly" 
+            ? 30 // Approximately a month
+            : 365, // A year
         };
       }
     }

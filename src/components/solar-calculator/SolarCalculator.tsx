@@ -239,7 +239,7 @@ export default function SolarCalculator() {
                           onValueChange={([value]: number[]) => handleRoofChange(index, 'orientation', value)}
                           min={0}
                           max={360}
-                          step={5}
+                          step={1}
                         />
                         <div className="text-sm text-muted-foreground text-center">
                           {roof.orientation}° ({

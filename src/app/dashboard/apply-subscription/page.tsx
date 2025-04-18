@@ -68,7 +68,6 @@ export default function ApplySubscriptionPage() {
     e.preventDefault();
     setIsSubmitting(true);
     setSubmitStatus(null);
-    
     try {
       const response = await fetch('/api/subscription/apply', {
         method: 'POST',

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, AlertTriangle, Info } from "lucide-react";
+import { Calendar, Clock, AlertTriangle, Info, CloudCog } from "lucide-react";
 import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
 import { Subscription } from "@/types/subscription";
@@ -23,7 +23,7 @@ export default function SubscriptionStatus() {
     hasActiveApplication: false,
     isInstaller: false,
     applicationStatus: null,
-    databaseStatus: "unknown"
+    databaseStatus: "unknown",
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function SubscriptionStatus() {
   useEffect(() => {
     const fetchSubscriptionStatus = async () => {
       try {
-        const response = await fetch('/api/subscription/status');
+        const response = await fetch("/api/subscription/status");
         if (response.ok) {
           const data = await response.json();
           setStatusData({
@@ -39,16 +39,19 @@ export default function SubscriptionStatus() {
             hasActiveApplication: data.hasActiveApplication || false,
             isInstaller: data.isInstaller || false,
             applicationStatus: data.applicationStatus || null,
-            databaseStatus: data.databaseStatus || "unknown"
+            databaseStatus: data.databaseStatus || "unknown",
           });
         } else {
           setError("Failed to fetch subscription status");
-          setStatusData(prev => ({ ...prev, databaseStatus: "disconnected" }));
+          setStatusData((prev) => ({
+            ...prev,
+            databaseStatus: "disconnected",
+          }));
         }
       } catch (error) {
         console.error("Error fetching subscription:", error);
         setError("Network error while fetching subscription");
-        setStatusData(prev => ({ ...prev, databaseStatus: "disconnected" }));
+        setStatusData((prev) => ({ ...prev, databaseStatus: "disconnected" }));
       } finally {
         setLoading(false);
       }
@@ -80,8 +83,12 @@ export default function SubscriptionStatus() {
     // Calculate percentage of subscription remaining
     const startDate = new Date(statusData.subscription.startDate);
     const expiryDate = new Date(statusData.subscription.expiryDate);
-    const totalDays = Math.ceil((expiryDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
     const daysRemaining = statusData.subscription.daysRemaining || 0;
+    
+    // Use totalDays from API if available, otherwise calculate it
+    const totalDays = statusData.subscription.totalDays || 
+      Math.ceil((expiryDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+    
     const percentRemaining = Math.round((daysRemaining / totalDays) * 100);
 
     return (
@@ -96,9 +103,9 @@ export default function SubscriptionStatus() {
             <span>{daysRemaining} days remaining</span>
           </div>
         </div>
-        
+
         <Progress value={percentRemaining} className="h-1.5 mb-2" />
-        
+
         <Link href="/dashboard/subscription">
           <Button variant="outline" size="sm" className="w-full text-xs">
             Manage Subscription
@@ -116,13 +123,16 @@ export default function SubscriptionStatus() {
           <h4 className="text-sm font-medium">Application Status</h4>
           <div className="flex items-center mt-1">
             <div className="h-2 w-2 bg-yellow-400 rounded-full mr-2"></div>
-            <span className="text-xs text-yellow-600 font-medium">In Progress</span>
+            <span className="text-xs text-yellow-600 font-medium">
+              In Progress
+            </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Your application is being reviewed. We'll notify you once it's processed.
+            Your application is being reviewed. We'll notify you once it's
+            processed.
           </p>
         </div>
-        
+
         <Link href="/dashboard/subscription">
           <Button variant="outline" size="sm" className="w-full text-xs">
             View Application
@@ -140,8 +150,10 @@ export default function SubscriptionStatus() {
         <p className="text-xs text-muted-foreground">Access premium features</p>
       </div>
       <Link href="/dashboard/subscription">
-        <Button size="sm" className="w-full">Join Us</Button>
+        <Button size="sm" className="w-full">
+          Join Us
+        </Button>
       </Link>
     </div>
   );
-} 
+}

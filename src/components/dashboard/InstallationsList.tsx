@@ -281,9 +281,46 @@ export default function InstallationsList({ isAdmin }: InstallationsListProps) {
   
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between animate-pulse">
+          <div>
+            <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-32 mb-2"></div>
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48"></div>
+          </div>
+          <div className="h-9 bg-gray-200 dark:bg-gray-700 rounded w-36"></div>
+        </CardHeader>
+        <CardContent>
+          {/* Search and Filter Skeleton */}
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded flex-1"></div>
+            <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full md:w-[200px]"></div>
+          </div>
+
+          {/* Table Skeleton */}
+          <div className="rounded-md border">
+            <div className="bg-gray-50 dark:bg-gray-800 border-b">
+              <div className="flex py-3 px-4">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <div key={i} className="h-5 bg-gray-200 dark:bg-gray-700 rounded flex-1 mx-2"></div>
+                ))}
+              </div>
+            </div>
+            <div className="animate-pulse">
+              {[1, 2, 3, 4, 5].map((row) => (
+                <div key={row} className="border-b flex py-4 px-4">
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1 mx-2 my-1"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1 mx-2 my-1"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1 mx-2 my-1"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16 mx-2 my-1"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1 mx-2 my-1"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded flex-1 mx-2 my-1"></div>
+                  <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-28 ml-auto my-1"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
   

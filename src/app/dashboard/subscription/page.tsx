@@ -68,15 +68,149 @@ export default function SubscriptionPage() {
     }
   }, [session]);
 
-  if (status === "loading" || loading) {
-    return <div className="flex justify-center items-center min-h-[60vh]">Loading subscription details...</div>;
-  }
+  // if (status === "loading" || loading) {
+  //   return (
+  //     <div className="container mx-auto p-4">
+  //       <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6 animate-pulse"></div>
+        
+  //       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+  //         <div className="lg:col-span-2">
+  //           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
+  //             <div className="p-6 pb-3 border-b border-gray-100 dark:border-gray-700">
+  //               <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2 animate-pulse"></div>
+  //               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-60 animate-pulse"></div>
+  //             </div>
+  //             <div className="p-6 animate-pulse">
+  //               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+  //                 {[1, 2, 3, 4].map(i => (
+  //                   <div key={i} className="flex items-start space-x-3">
+  //                     <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded mt-0.5"></div>
+  //                     <div className="space-y-2">
+  //                       <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+  //                       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+  //                     </div>
+  //                   </div>
+  //                 ))}
+  //               </div>
+                
+  //               <div className="border-t pt-6 mt-6">
+  //                 <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-3"></div>
+  //                 <div className="space-y-2">
+  //                   {[1, 2, 3, 4].map(i => (
+  //                     <div key={i} className="flex items-center space-x-2">
+  //                       <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+  //                       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+  //                     </div>
+  //                   ))}
+  //                 </div>
+  //               </div>
+  //             </div>
+  //             <div className="p-6 pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row gap-3 justify-between">
+  //               <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full sm:w-40"></div>
+  //               <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full sm:w-40"></div>
+  //             </div>
+  //           </div>
+  //         </div>
+          
+  //         <div>
+  //           <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
+  //             <div className="p-6 pb-3 border-b border-gray-100 dark:border-gray-700">
+  //               <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2 animate-pulse"></div>
+  //               <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div>
+  //             </div>
+  //             <div className="p-6 animate-pulse">
+  //               <div className="space-y-4">
+  //                 {[1, 2, 3].map(i => (
+  //                   <div key={i} className="flex items-start space-x-3">
+  //                     <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded mt-0.5"></div>
+  //                     <div className="space-y-2 flex-1">
+  //                       <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+  //                       <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+  //                     </div>
+  //                   </div>
+  //                 ))}
+  //               </div>
+  //             </div>
+  //             <div className="p-6 pt-2 border-t border-gray-100 dark:border-gray-700">
+  //               <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   if (isLoading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-6">Subscription Management</h1>
+
+        {/* <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-6 animate-pulse"></div> */}
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
+              <div className="p-6 pb-3 border-b border-gray-100 dark:border-gray-700">
+                <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-60 animate-pulse"></div>
+              </div>
+              <div className="p-6 animate-pulse">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  {[1, 2, 3, 4].map(i => (
+                    <div key={i} className="flex items-start space-x-3">
+                      <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded mt-0.5"></div>
+                      <div className="space-y-2">
+                        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="border-t pt-6 mt-6">
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-3"></div>
+                  <div className="space-y-2">
+                    {[1, 2, 3, 4].map(i => (
+                      <div key={i} className="flex items-center space-x-2">
+                        <div className="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-col sm:flex-row gap-3 justify-between">
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full sm:w-40"></div>
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full sm:w-40"></div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden bg-white dark:bg-gray-800">
+              <div className="p-6 pb-3 border-b border-gray-100 dark:border-gray-700">
+                <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-40 mb-2 animate-pulse"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48 animate-pulse"></div>
+              </div>
+              <div className="p-6 animate-pulse">
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="flex items-start space-x-3">
+                      <div className="h-5 w-5 bg-gray-200 dark:bg-gray-700 rounded mt-0.5"></div>
+                      <div className="space-y-2 flex-1">
+                        <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-32"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="p-6 pt-2 border-t border-gray-100 dark:border-gray-700">
+                <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );

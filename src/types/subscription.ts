@@ -11,6 +11,7 @@ export interface Subscription {
   createdByUserId: string | null;
   updatedByUserId: string | null;
   daysRemaining?: number;
+  totalDays?: number;
 }
 
 export interface Installer {
