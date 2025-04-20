@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
     });
     
     // Transform data to include counts and format dates
-    const transformedInstallers = installers.map(installer => ({
+    const transformedInstallers = installers.map((installer: any) => ({
       ...installer,
       customersCount: installer.customers.length,
       installationsCount: installer.installations.length,
