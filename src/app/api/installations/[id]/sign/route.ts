@@ -71,7 +71,7 @@ export async function POST(
           customerName: signatureData.customerName,
           macAddress: signatureData.macAddress,
           ipAddress: signatureData.ipAddress
-        } as Prisma.InputJsonValue,
+        } as any,
       },
       include: {
         customer: true,
