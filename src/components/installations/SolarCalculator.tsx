@@ -270,11 +270,11 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
                   <Slider
                     value={[orientation]}
                     onValueChange={(values) => {
-                      const rounded = Math.round(values[0] / 5) * 5;
-                      setOrientation(rounded);
+                      // const rounded = Math.round(values[0] / 5) * 5;
+                      setOrientation(values[0]);
                     }}
-                    min={-180}
-                    max={180}
+                    min={0}
+                    max={175}
                     step={5}
                   />
                   <Input
@@ -286,8 +286,8 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
                         // Clamp value between -180 and 180
                         value = Math.max(-180, Math.min(180, value));
                         // Round to nearest 5
-                        const rounded = Math.round(value / 5) * 5;
-                        setOrientation(rounded);
+                        // const rounded = Math.round(value / 5) * 5;
+                        setOrientation(value);
                       }
                     }}
                     onBlur={(e) => {

@@ -39,6 +39,7 @@ export default function NewInstallationPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [customersLoading, setCustomersLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('customer-info');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
@@ -84,6 +85,7 @@ export default function NewInstallationPage() {
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
+        setCustomersLoading(true);
         const response = await fetch('/api/customers');
         if (!response.ok) throw new Error('Failed to fetch customers');
         const data = await response.json();
@@ -91,6 +93,8 @@ export default function NewInstallationPage() {
       } catch (error) {
         console.error('Error fetching customers:', error);
         toast.error('Failed to load customers');
+      } finally {
+        setCustomersLoading(false);
       }
     };
 
@@ -324,9 +328,20 @@ export default function NewInstallationPage() {
                       <Select
                         value={selectedCustomer ? selectedCustomer.id.toString() : isNewCustomer ? 'new' : ''}
                         onValueChange={handleCustomerSelect}
+                        disabled={customersLoading}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a customer" />
+                          {customersLoading ? (
+                            <div className="flex items-center">
+                              <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Loading customers...
+                            </div>
+                          ) : (
+                            <SelectValue placeholder="Select a customer" />
+                          )}
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="new">

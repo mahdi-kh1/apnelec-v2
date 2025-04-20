@@ -61,34 +61,191 @@ export async function getZoneFromPostcode(postcode: string): Promise<string | nu
 // Cache for irradiance data to avoid reading the Excel file multiple times
 let irradianceDataCache: { [key: string]: any } = {};
 
+// async function getIrradianceData(zone: string, slope: number, orientation: number): Promise<number> {
+//   try {
+//     // Round slope and orientation to nearest 5 degrees for lookup
+//     // const roundedSlope = Math.round(slope / 5) * 5;
+//     // Clamp slope between 0 and 90 degrees
+//     const clampedSlope = Math.max(0, Math.min(90, slope));
+    
+//     // Make sure orientation is in the correct range (-180 to 180)
+//     let orientationValue = orientation;
+//     if (orientationValue < -180) orientationValue = -180;
+//     if (orientationValue > 180) orientationValue = 180;
+    
+//     // Convert to positive for lookup (Excel only has 0-180)
+//     const positiveOrientation = Math.abs(orientationValue);
+//     const roundedOrientation = Math.round(positiveOrientation / 5) * 5;
+//     // Clamp orientation between 0 and 180 degrees
+//     const clampedOrientation = Math.min(180, roundedOrientation);
+    
+//     // Check if we have the data in cache
+//     const cacheKey = `${zone}_${clampedSlope}_${clampedOrientation}`;
+//     if (irradianceDataCache[cacheKey] !== undefined) {
+//       console.log(`Using cached irradiance data for ${cacheKey}: ${irradianceDataCache[cacheKey]}`);
+//       return irradianceDataCache[cacheKey];
+//     }
+    
+//     console.log(`Looking up irradiance data for zone: ${zone}, slope: ${clampedSlope}, orientation: ${clampedOrientation}`);
+    
+//     // Map zone to region
+//     const regions: { [key: string]: string } = {
+//       'Z1': 'Zone 1 - London',
+//       'Z2': 'Zone 2 - Brighton',
+//       'Z3': 'Zone 3 - Southampton',
+//       'Z4': 'Zone 4 - Plymouth',
+//       'Z5E': 'Zone 5E - Bristol',
+//       'Z5W': 'Zone 5W - Cardiff',
+//       'Z6': 'Zone 6 - Birmingham',
+//       'Z7E': 'Zone 7E - Manchester',
+//       'Z7W': 'Zone 7W - Chester',
+//       'Z8E': 'Zone 8E - Carlisle',
+//       'Z8S': 'Zone 8S - Dumfries',
+//       'Z9E': 'Zone 9E - Newcastle',
+//       'Z9S': 'Zone 9S - Edinburgh',
+//       'Z10': 'Zone 10 - Middlesborough',
+//       'Z11': 'Zone 11 - Sheffield',
+//       'Z12': 'Zone 12 - Norwich',
+//       'Z13': 'Zone 13 - Aberystwith',
+//       'Z14': 'Zone 14 - Glasgow',
+//       'Z15': 'Zone 15 - Dundee',
+//       'Z16': 'Zone 16 - Aberdeen',
+//       'Z17': 'Zone 17 - Inverness',
+//       'Z18': 'Zone 18 - Stornoway',
+//       'Z19': 'Zone 19 - Kirkwall',
+//       'Z20': 'Zone 20 - Lerwick',
+//       'Z21': 'Zone 21 - Belfast'
+//     };
+    
+//     // Get region from zone
+//     let region: string;
+//     if (regions[zone]) {
+//       region = regions[zone];
+//     } else {
+//       // Try to match main zone (e.g., Z5 from Z5E)
+//       const mainZone = zone.substring(0, 2);
+//       if (regions[mainZone]) {
+//         region = regions[mainZone] + " (Region)";
+//       } else {
+//         region = zone; // Fallback to zone code
+//       }
+//     }
+    
+//     console.log(`Using region "${region}" for zone ${zone}`);
+    
+//     // Check if the Excel file exists
+//     const excelPath = path.join(process.cwd(), 'documents', 'Irradiance-Datasets.xlsx');
+//     try {
+//       await fs.access(excelPath);
+//     } catch (error) {
+//       console.error(`Error accessing Irradiance-Datasets.xlsx: ${error}`);
+//       return 950; // Default value if file doesn't exist
+//     }
+    
+//     console.log('Access to Irradiance-Datasets.xlsx successful');
+    
+//     // Read the Excel file
+//     let workbook;
+//     try {
+//       workbook = new ExcelJS.Workbook();
+//       await workbook.xlsx.readFile(excelPath);
+//     } catch (error) {
+//       console.error(`Error reading Excel file: ${error}`);
+//       return 950; // Default value
+//     }
+    
+//     console.log('Successfully read Irradiance-Datasets.xlsx');
+    
+//     // List all worksheet names for debugging
+//     console.log('Available worksheets:', workbook.worksheets.map(ws => ws.name));
+    
+//     // Access the worksheet by region name
+//     const worksheet = workbook.getWorksheet(region);
+    
+//     if (!worksheet) {
+//       console.error(`No worksheet found for region "${region}"`);
+//       console.log('Falling back to first worksheet');
+//       const fallbackWorksheet = workbook.worksheets[0];
+      
+//       if (!fallbackWorksheet) {
+//         console.error('No worksheets found in the workbook');
+//         return 950; // Default value
+//       }
+      
+//       // Use the fallback worksheet
+//       return processWorksheet(fallbackWorksheet, clampedSlope, clampedOrientation, cacheKey);
+//     }
+    
+//     console.log(`Accessing worksheet for region: ${region}`);
+    
+//     return processWorksheet(worksheet, clampedSlope, clampedOrientation, cacheKey);
+//   } catch (error) {
+//     console.error('Error reading irradiance data:', error);
+//     return 950; // Default value
+//   }
+// }
+
+// Helper function to process worksheet data
+
 async function getIrradianceData(zone: string, slope: number, orientation: number): Promise<number> {
   try {
-    // Round slope and orientation to nearest 5 degrees for lookup
-    const roundedSlope = Math.round(slope / 5) * 5;
-    // Clamp slope between 0 and 90 degrees
-    const clampedSlope = Math.max(0, Math.min(90, roundedSlope));
-    
-    // Make sure orientation is in the correct range (-180 to 180)
+    const clampedSlope = Math.max(0, Math.min(90, slope));
+
     let orientationValue = orientation;
     if (orientationValue < -180) orientationValue = -180;
     if (orientationValue > 180) orientationValue = 180;
-    
-    // Convert to positive for lookup (Excel only has 0-180)
     const positiveOrientation = Math.abs(orientationValue);
     const roundedOrientation = Math.round(positiveOrientation / 5) * 5;
-    // Clamp orientation between 0 and 180 degrees
     const clampedOrientation = Math.min(180, roundedOrientation);
-    
-    // Check if we have the data in cache
+
     const cacheKey = `${zone}_${clampedSlope}_${clampedOrientation}`;
     if (irradianceDataCache[cacheKey] !== undefined) {
       console.log(`Using cached irradiance data for ${cacheKey}: ${irradianceDataCache[cacheKey]}`);
       return irradianceDataCache[cacheKey];
     }
-    
+
     console.log(`Looking up irradiance data for zone: ${zone}, slope: ${clampedSlope}, orientation: ${clampedOrientation}`);
-    
-    // Check if the Excel file exists
+
+    const regions: { [key: string]: string } = {
+      'Z1': 'Zone 1 - London',
+      'Z2': 'Zone 2 - Brighton',
+      'Z3': 'Zone 3 - Southampton',
+      'Z4': 'Zone 4 - Plymouth',
+      'Z5E': 'Zone 5E - Bristol',
+      'Z5W': 'Zone 5W - Cardiff',
+      'Z6': 'Zone 6 - Birmingham',
+      'Z7E': 'Zone 7E - Manchester',
+      'Z7W': 'Zone 7W - Chester',
+      'Z8E': 'Zone 8E - Carlisle',
+      'Z8S': 'Zone 8S - Dumfries',
+      'Z9E': 'Zone 9E - Newcastle',
+      'Z9S': 'Zone 9S - Edinburgh',
+      'Z10': 'Zone 10 - Middlesborough',
+      'Z11': 'Zone 11 - Sheffield',
+      'Z12': 'Zone 12 - Norwich',
+      'Z13': 'Zone 13 - Aberystwith',
+      'Z14': 'Zone 14 - Glasgow',
+      'Z15': 'Zone 15 - Dundee',
+      'Z16': 'Zone 16 - Aberdeen',
+      'Z17': 'Zone 17 - Inverness',
+      'Z18': 'Zone 18 - Stornoway',
+      'Z19': 'Zone 19 - Kirkwall',
+      'Z20': 'Zone 20 - Lerwick',
+      'Z21': 'Zone 21 - Belfast'
+    };
+
+    let region: string;
+    if (regions[zone]) {
+      region = regions[zone];
+    } else {
+      const mainZone = zone.substring(0, 2);
+      if (regions[mainZone]) {
+        region = regions[mainZone] + " (Region)";
+      } else {
+        region = zone; // Fallback to zone code
+      }
+    }
+
     const excelPath = path.join(process.cwd(), 'documents', 'Irradiance-Datasets.xlsx');
     try {
       await fs.access(excelPath);
@@ -96,8 +253,7 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
       console.error(`Error accessing Irradiance-Datasets.xlsx: ${error}`);
       return 950; // Default value if file doesn't exist
     }
-    
-    // Read the Excel file
+
     let workbook;
     try {
       workbook = new ExcelJS.Workbook();
@@ -106,91 +262,175 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
       console.error(`Error reading Excel file: ${error}`);
       return 950; // Default value
     }
-    
-    // The first worksheet contains the data
-    const worksheet = workbook.worksheets[0];
-    
+
+    const worksheet = workbook.getWorksheet(region);
     if (!worksheet) {
-      console.error('No worksheet found in Irradiance-Datasets.xlsx');
+      console.error(`No worksheet found for region "${region}"`);
       return 950; // Default value
     }
-    
-    // Find the row for the slope
-    let targetRow: any = null;
-    let exactMatch = false;
-    
-    worksheet.eachRow((row, rowNumber) => {
-      if (rowNumber === 1) return; // Skip header row
-      
-      let rowSlope;
-      try {
-        rowSlope = Number(row.getCell(1).value);
-      } catch (error) {
-        console.warn(`Error reading slope value in row ${rowNumber}: ${error}`);
-        return; // Skip this row
-      }
-      
-      if (!isNaN(rowSlope)) {
-        if (rowSlope === clampedSlope) {
-          targetRow = row;
-          exactMatch = true;
-          return false; // Break the loop
-        } else if (!exactMatch && !targetRow) {
-          // Use as fallback if no exact match
-          targetRow = row;
-        }
-      }
-    });
-    
-    if (!targetRow) {
-      console.error(`No data found for slope ${clampedSlope}, using default value`);
-      return 950; // Default value
-    }
-    
-    // Find the column for the orientation
-    // Headers are in 5-degree increments from 0 to 180
-    const orientationStep = 5;
-    const orientationIndex = Math.round(clampedOrientation / orientationStep) + 2; // +2 because first column is slope
-    
-    let irradianceCell;
-    try {
-      irradianceCell = targetRow.getCell(orientationIndex);
-    } catch (error) {
-      console.error(`Error accessing cell for orientation ${clampedOrientation}: ${error}`);
-      return 950; // Default value
-    }
-    
-    if (!irradianceCell || irradianceCell.value === null) {
-      console.error(`No data found for orientation ${clampedOrientation}, using default value`);
-      return 950; // Default value
-    }
-    
-    let irradiance;
-    try {
-      irradiance = Number(irradianceCell.value);
-    } catch (error) {
-      console.error(`Error converting irradiance value to number: ${error}`);
-      return 950; // Default value
-    }
-    
-    if (isNaN(irradiance)) {
-      console.error(`Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`);
-      return 950; // Default value
-    }
-    
-    console.log(`Successfully retrieved irradiance value: ${irradiance}`);
-    
-    // Cache the result
-    irradianceDataCache[cacheKey] = irradiance;
-    
-    return irradiance;
+
+    console.log(`Accessing worksheet for region: ${region}`);
+
+    return processWorksheet(worksheet, clampedSlope, clampedOrientation, cacheKey);
   } catch (error) {
     console.error('Error reading irradiance data:', error);
     return 950; // Default value
   }
 }
 
+
+// function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, clampedOrientation: number, cacheKey: string): number {
+//   // Find the row for the slope
+//   let targetRow: any = null;
+//   let exactMatch = false;
+  
+//   worksheet.eachRow((row, rowNumber) => {
+//     if (rowNumber === 1) return; // Skip header row
+    
+//     // console.log(`Row ${rowNumber} values:`, row.values);
+    
+//     let rowSlope;
+//     try {
+//       rowSlope = Number(row.getCell(2).value);
+//     } catch (error) {
+//       console.warn(`Error reading slope value in row ${rowNumber}: ${error}`);
+//       return; // Skip this row
+//     }
+    
+//     if (!isNaN(rowSlope)) {
+//       if (rowSlope === clampedSlope) {
+//         targetRow = row;
+//         exactMatch = true;
+//         return false; // Break the loop
+//       } else if (!exactMatch && !targetRow) {
+//         // Use as fallback if no exact match
+//         targetRow = row;
+//       }
+//     }
+//   });
+  
+//   if (!targetRow) {
+//     console.error(`No data found for slope ${clampedSlope}, using default value`);
+//     return 950; // Default value
+//   }
+  
+//   // Find the column for the orientation
+//   // Headers are in 5-degree increments from 0 to 180
+//   const orientationStep = 5;
+//   const orientationIndex = Math.round(clampedOrientation / orientationStep) + 2; // +2 because first column is slope
+  
+//   let irradianceCell;
+//   try {
+//     irradianceCell = targetRow.getCell(orientationIndex);
+//   } catch (error) {
+//     console.error(`Error accessing cell for orientation ${clampedOrientation}: ${error}`);
+//     return 950; // Default value
+//   }
+  
+//   if (!irradianceCell || irradianceCell.value === null) {
+//     console.error(`No data found for orientation ${clampedOrientation}, using default value`);
+//     return 950; // Default value
+//   }
+  
+//   let irradiance;
+//   try {
+//     irradiance = Number(irradianceCell.value);
+//   } catch (error) {
+//     console.error(`Error converting irradiance value to number: ${error}`);
+//     return 950; // Default value
+//   }
+  
+//   if (isNaN(irradiance)) {
+//     console.error(`Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`);
+//     return 950; // Default value
+//   }
+  
+//   console.log(`Successfully retrieved irradiance value: ${irradiance}`);
+  
+//   // Cache the result
+//   irradianceDataCache[cacheKey] = irradiance;
+  
+//   console.log('Successfully accessed worksheet');
+  
+//   return irradiance;
+// }
+
 // Cache for peak velocity pressure data
+
+function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, clampedOrientation: number, cacheKey: string): number {
+  let targetRow: any = null;
+  let exactMatch = false;
+
+  // بررسی هر سطر برای پیدا کردن سطر مناسب با شیب
+  worksheet.eachRow((row, rowNumber) => {
+    if (rowNumber === 1) return; // سطر اول که هدر است را رد می‌کنیم
+
+    let rowSlope;
+    try {
+      rowSlope = Number(row.getCell(2).value); // فرض بر این است که ستون ۲ مربوط به شیب است
+    } catch (error) {
+      console.warn(`Error reading slope value in row ${rowNumber}: ${error}`);
+      return; // این ردیف را نادیده می‌گیریم
+    }
+
+    if (!isNaN(rowSlope)) {
+      if (rowSlope === clampedSlope) {
+        targetRow = row;
+        exactMatch = true;
+        return false; // توقف حلقه زمانی که سطر مناسب پیدا شد
+      } else if (!exactMatch && !targetRow) {
+        // استفاده از اولین ردیف نزدیک به شیب
+        targetRow = row;
+      }
+    }
+  });
+
+  if (!targetRow) {
+    console.error(`No data found for slope ${clampedSlope}, using default value`);
+    return 950; // مقدار پیش‌فرض
+  }
+
+  // بررسی ستون مناسب برای جهت‌گیری (orientation)
+  const orientationStep = 5; // هر ۵ درجه یک ستون در جهت‌گیری
+  const orientationIndex = Math.round(clampedOrientation / orientationStep) + 3; // +3 چون ستون اول برای شیب است و ستون دوم برای اعداد جهت‌گیری است
+
+  let irradianceCell;
+  try {
+    irradianceCell = targetRow.getCell(orientationIndex); // سلول مناسب با جهت‌گیری
+  } catch (error) {
+    console.error(`Error accessing cell for orientation ${clampedOrientation}: ${error}`);
+    return 950; // مقدار پیش‌فرض
+  }
+
+  if (!irradianceCell || irradianceCell.value === null) {
+    console.error(`No data found for orientation ${clampedOrientation}, using default value`);
+    return 950; // مقدار پیش‌فرض
+  }
+
+  let irradiance;
+  try {
+    irradiance = Number(irradianceCell.value);
+  } catch (error) {
+    console.error(`Error converting irradiance value to number: ${error}`);
+    return 950; // مقدار پیش‌فرض
+  }
+
+  if (isNaN(irradiance)) {
+    console.error(`Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`);
+    return 950; // مقدار پیش‌فرض
+  }
+
+  console.log(`Successfully retrieved irradiance value: ${irradiance}`);
+
+  // ذخیره نتیجه در کش
+  irradianceDataCache[cacheKey] = irradiance;
+
+  console.log('Successfully accessed worksheet');
+
+  return irradiance;
+}
+
+
 let peakVelocityPressureCache: { [key: string]: number } = {};
 
 async function getPeakVelocityPressure(zone: string): Promise<number> {
@@ -204,6 +444,7 @@ async function getPeakVelocityPressure(zone: string): Promise<number> {
     const csvPath = path.join(process.cwd(), 'documents', 'Peak velocity pressures (qp) in pascals.csv');
     const csvContent = await fs.readFile(csvPath, 'utf-8');
     const lines = csvContent.split('\n');
+    
     
     // Find the row for the zone
     const zoneRow = lines.find(line => {
@@ -347,32 +588,59 @@ export async function calculateSolarOutput(params: SolarCalculationInputs): Prom
     }
     
     // Map zone to region
+    // const regions: { [key: string]: string } = {
+    //   'Z1': 'South East England',
+    //   'Z2': 'South England',
+    //   'Z3': 'South West England',
+    //   'Z4': 'South West Peninsula',
+    //   'Z5E': 'Thames Valley East',
+    //   'Z5W': 'Thames Valley West',
+    //   'Z6': 'Midlands',
+    //   'Z7E': 'West Pennines East',
+    //   'Z7W': 'West Pennines West',
+    //   'Z8E': 'North West England East',
+    //   'Z8S': 'North West England South',
+    //   'Z9E': 'North East England East',
+    //   'Z9S': 'North East England South',
+    //   'Z10': 'Borders',
+    //   'Z11': 'Yorkshire',
+    //   'Z12': 'East Anglia',
+    //   'Z13': 'Wales',
+    //   'Z14': 'West Scotland',
+    //   'Z15': 'East Scotland',
+    //   'Z16': 'North East Scotland',
+    //   'Z17': 'Highland',
+    //   'Z18': 'Western Isles',
+    //   'Z19': 'Orkney',
+    //   'Z20': 'Shetland',
+    //   'Z21': 'Northern Ireland'
+    // };
     const regions: { [key: string]: string } = {
-      'Z1': 'South East England',
-      'Z2': 'South England',
-      'Z3': 'South West England',
-      'Z4': 'South West Peninsula',
-      'Z5E': 'Thames Valley East',
-      'Z5W': 'Thames Valley West',
-      'Z6': 'Midlands',
-      'Z7E': 'West Pennines East',
-      'Z7W': 'West Pennines West',
-      'Z8E': 'North West England East',
-      'Z8S': 'North West England South',
-      'Z9E': 'North East England East',
-      'Z9S': 'North East England South',
-      'Z10': 'Borders',
-      'Z11': 'Yorkshire',
-      'Z12': 'East Anglia',
-      'Z13': 'Wales',
-      'Z14': 'West Scotland',
-      'Z15': 'East Scotland',
-      'Z16': 'North East Scotland',
-      'Z17': 'Highland',
-      'Z18': 'Western Isles',
-      'Z19': 'Orkney',
-      'Z20': 'Shetland',
-      'Z21': 'Northern Ireland'
+      'Z1': 'Zone 1 - London',
+      'Z2': 'Zone 2 - Brighton',
+      'Z3': 'Zone 3 - Southampton',
+      'Z4': 'Zone 4 - Plymouth',
+      'Z5E': 'Zone 5E - Bristol',
+      'Z5W': 'Zone 5W - Cardiff',
+      'Z6': 'Zone 6 - Birmingham',
+      'Z7E': 'Zone 7E - Manchester',
+      'Z7W': 'Zone 7W - Chester',
+      'Z8E': 'Zone 8E - Carlisle',
+      'Z8S': 'Zone 8S - Dumfries',
+      'Z9E': 'Zone 9E - Newcastle',
+      'Z9S': 'Zone 9S - Edinburgh',
+      'Z10': 'Zone 10 - Middlesborough',
+      'Z11': 'Zone 11 - Sheffield',
+      'Z12': 'Zone 12 - Norwich',
+      'Z13': 'Zone 13 - Aberystwith',
+      'Z14': 'Zone 14 - Glasgow',
+      'Z15': 'Zone 15 - Dundee',
+      'Z16': 'Zone 16 - Aberdeen',
+      'Z17': 'Zone 17 - Inverness',
+      'Z18': 'Zone 18 - Stornoway',
+      'Z19': 'Zone 19 - Kirkwall',
+      'Z20': 'Zone 20 - Lerwick',
+      'Z21': 'Zone 21 - Belfast'
     };
     
     // Extract region from zone (handle subzones like Z5E, Z5W, etc.)
