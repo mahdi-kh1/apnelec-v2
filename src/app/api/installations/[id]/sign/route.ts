@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { InstallationStatus, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
+
+// Import the enum directly since it's not exported by @prisma/client
+enum InstallationStatus {
+  DETAILS_COMPLETED = "DETAILS_COMPLETED",
+  SIGNATURE_NEEDED = "SIGNATURE_NEEDED",
+  CONTRACT_SIGNED = "CONTRACT_SIGNED"
+}
 
 interface SignatureData {
   customerName: string;
