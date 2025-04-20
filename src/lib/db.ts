@@ -22,10 +22,10 @@ if (process.env.NODE_ENV !== 'production') {
       .then(() => {
         console.log('Database connection established')
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error('Database connection failed:', error)
       })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Database connection setup error:', error)
   }
 }
