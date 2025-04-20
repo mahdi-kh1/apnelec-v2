@@ -7,6 +7,27 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import fs from "fs/promises";
 
+// Define Blog interface
+interface Blog {
+  id: number;
+  title: string;
+  content: string | null;
+  excerpt: string | null;
+  tags: string | null;
+  imagePath: string | null;
+  authorId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  readTime: number;
+  featured: boolean;
+  published: boolean;
+  author?: {
+    id: string;
+    name: string | null;
+    image: string | null;
+  };
+}
+
 // Ensure upload directory exists
 async function ensureDirectoryExists(dirPath: string) {
   try {
@@ -150,12 +171,8 @@ export async function GET(req: NextRequest) {
       }
     }
     
-    interface Blog {
-      imagePath: string | null;
-      // other blog properties...
-    }
-
-    const transformedBlogs = blogs.map((blog: Blog) => ({
+    // Transform the response to ensure imagePath is always set
+    const transformedBlogs = blogs.map((blog: any) => ({
       ...blog,
       imagePath: blog.imagePath || '/about-apnelec.jpg'
     }));
