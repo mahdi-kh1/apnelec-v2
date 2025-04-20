@@ -181,7 +181,7 @@ export default async function InstallerPage({
             <CardContent>
               {installer.customers.length > 0 ? (
                 <div className="space-y-4">
-                  {installer.customers.map(customer => (
+                  {installer.customers.map((customer: any) => (
                     <div key={customer.id} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">
@@ -213,7 +213,7 @@ export default async function InstallerPage({
             <CardContent>
               {installer.installations.length > 0 ? (
                 <div className="space-y-4">
-                  {installer.installations.map(installation => (
+                  {installer.installations.map((installation: any) => (
                     <div key={installation.id} className="flex justify-between items-center">
                       <div>
                         <p className="font-medium">
