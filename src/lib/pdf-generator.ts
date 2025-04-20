@@ -1,4 +1,26 @@
-import { Installation, Customer, Address } from '@prisma/client';
+// Define our own types instead of importing from Prisma
+interface Customer {
+  firstName: string;
+  lastName: string;
+}
+
+interface Address {
+  street: string;
+  city: string;
+  postcode: string;
+  telephone: string;
+}
+
+interface Installation {
+  id: number;
+  totalPVOutput: number;
+  annualACOutput: number;
+  zone: string;
+  roofDetails: string | any;
+  customer: Customer;
+  address: Address;
+}
+
 import fs from 'fs';
 import path from 'path';
 import { prisma } from './prisma';
