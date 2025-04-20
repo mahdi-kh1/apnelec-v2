@@ -32,7 +32,7 @@ export async function GET() {
     });
     
     // Transform the data to match the expected format
-    const formattedApplications = applications.map(app => ({
+    const formattedApplications = applications.map((app: any) => ({
       ...app,
       applicant: {
         name: app.user.name,
