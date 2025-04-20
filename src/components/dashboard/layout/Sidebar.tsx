@@ -118,6 +118,8 @@ const Sidebar = ({ isOpen, onClose, className }: SidebarProps) => {
   };
 
   const isActive = (href: string) => {
+    if (!pathname) return false;
+    
     // Special case for dashboard to prevent it from being active on all dashboard/* routes
     if (href === "/dashboard") {
       return pathname === "/dashboard";

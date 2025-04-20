@@ -25,9 +25,9 @@ interface User {
 }
 
 export default function UserDetailPage() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const router = useRouter();
-  const userId = params.id as string;
+  const userId = params?.id;
   
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);

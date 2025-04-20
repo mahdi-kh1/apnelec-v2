@@ -4,7 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function EditBlogPage() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
+  const id = params?.id;
   const router = useRouter();
   const [blogs, setBlogs] = useState<{
     title: string;
@@ -13,9 +14,11 @@ export default function EditBlogPage() {
   } | null>(null);
 
   useEffect(() => {
+    if (!id) return;
+    
     const fetchBlogs = async () => {
       try {
-        const response = await fetch(`/api/blogs/${params.id}`);
+        const response = await fetch(`/api/blogs/${id}`);
         const data = await response.json();
         setBlogs(data);
       } catch (error) {
@@ -23,7 +26,7 @@ export default function EditBlogPage() {
       }
     };
     fetchBlogs();
-  }, [params.id]);
+  }, [id]);
 
   // اگر داده‌ها هنوز بارگذاری نشده باشند، نمایش لودر یا وضعیت دیگر
   if (!blogs) {
@@ -34,7 +37,7 @@ export default function EditBlogPage() {
     <BlogForm
       redirectToPage={true}
       redirectPath="/dashboard/blogs"
-      blogId={`${params.id}`}
+      blogId={id}
       existingData={blogs}
     />
   );

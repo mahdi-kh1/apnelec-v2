@@ -150,8 +150,12 @@ export async function GET(req: NextRequest) {
       }
     }
     
-    // Transform the response to ensure imagePath is always set
-    const transformedBlogs = blogs.map(blog => ({
+    interface Blog {
+      imagePath: string | null;
+      // other blog properties...
+    }
+
+    const transformedBlogs = blogs.map((blog: Blog) => ({
       ...blog,
       imagePath: blog.imagePath || '/about-apnelec.jpg'
     }));

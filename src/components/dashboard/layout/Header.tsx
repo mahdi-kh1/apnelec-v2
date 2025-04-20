@@ -29,6 +29,7 @@ const Header = ({ onMenuClick }: HeaderProps) => {
 
   // Get current page name from pathname
   const getPageName = () => {
+    if (!pathname) return 'Dashboard';
     const path = pathname.split('/');
     if (path.length <= 2) return 'Dashboard';
     

@@ -37,8 +37,8 @@ export default function ApplicationDetailPage() {
     }
   });
 
-  const params = useParams();
-  const id = typeof params.id === 'string' ? parseInt(params.id) : null;
+  const params = useParams<{ id: string }>();
+  const id = params?.id ? parseInt(params.id) : null;
 
   const [application, setApplication] = useState<SubscriptionApplication | null>(null);
   const [loading, setLoading] = useState(true);

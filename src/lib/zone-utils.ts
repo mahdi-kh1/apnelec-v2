@@ -575,6 +575,11 @@ export interface DetailedSolarCalculationResult {
 
 export async function calculateSolarOutput(params: SolarCalculationInputs): Promise<DetailedSolarCalculationResult | null> {
   try {
+    if (!params) {
+      console.error('Solar calculation params are null');
+      return null;
+    }
+    
     const { pvOutput, postcode, slope, orientation, shadeFactor, occupancyType, annualConsumption } = params;
     
     console.log('Starting solar calculation with params:', params);

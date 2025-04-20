@@ -48,7 +48,7 @@ export default function BlogList() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
-  const query = searchParams.get("q") || "";
+  const query = searchParams?.get("q") || "";
   
   useEffect(() => {
     setSearchQuery(query);

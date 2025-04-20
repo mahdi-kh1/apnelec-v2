@@ -41,7 +41,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
       label: 'Subscription',
       href: '/dashboard/subscription',
       icon: <CreditCard className="h-5 w-5" />,
-      active: pathname.includes('/dashboard/subscription'),
+      active: pathname?.includes('/dashboard/subscription') || false,
     },
   ];
 
