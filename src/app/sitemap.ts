@@ -1,11 +1,11 @@
 import { MetadataRoute } from 'next';
-import { db } from '@/lib/db';
+import { prisma } from '@/lib/prisma';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
   
   // Get all blog posts
-  const blogs = await db.blog.findMany({
+  const blogs = await prisma.blog.findMany({
     select: {
       id: true,
       updatedAt: true,
