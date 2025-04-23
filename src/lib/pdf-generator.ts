@@ -1,7 +1,18 @@
-import { Customer, Address } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from './prisma';
+
+interface Customer {
+  firstName: string;
+  lastName: string;
+}
+
+interface Address {
+  street?: string;
+  city?: string;
+  postcode: string;
+  telephone?: string;
+}
 
 interface SignatureInfo {
   customerName: string;
