@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,14 +50,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
   const [annualConsumption, setAnnualConsumption] = useState<number>(3500);
   const [results, setResults] = useState<any>(null);
 
-  useEffect(() => {
-    if (postcode) {
-      handleGetZone();
-      handleGetCoordinates();
-    }
-  }, [postcode]);
-
-  const handleGetZone = async () => {
+  const handleGetZone = useCallback(async () => {
     try {
       const formattedPostcode = postcode.trim().replace(/\s+/g, '');
       if (!formattedPostcode) {
@@ -91,9 +84,9 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
       toast.error('Failed to get zone information. Using default zone.');
       setZone('Z3'); // Use a default zone as fallback
     }
-  };
+  }, [postcode]);
 
-  const handleGetCoordinates = async () => {
+  const handleGetCoordinates = useCallback(async () => {
     try {
       const response = await fetch(`https://api.postcodes.io/postcodes/${postcode}`);
       if (!response.ok) throw new Error('Failed to fetch coordinates');
@@ -114,7 +107,14 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
       console.error('Error fetching coordinates:', error);
       toast.error('Failed to get coordinates');
     }
-  };
+  }, [postcode]);
+
+  useEffect(() => {
+    if (postcode) {
+      handleGetZone();
+      handleGetCoordinates();
+    }
+  }, [postcode, handleGetZone, handleGetCoordinates]);
 
   const handleCalculate = async () => {
     if (!zone) {

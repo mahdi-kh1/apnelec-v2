@@ -1,4 +1,4 @@
-import { Installation, Customer, Address } from '@prisma/client';
+import { Customer, Address } from '@prisma/client';
 import fs from 'fs';
 import path from 'path';
 import { prisma } from './prisma';
