@@ -26,25 +26,25 @@ const Navbar = () => {
     {
       id: 2,
       name: "Solar solutions",
-      href: "/Solar-solutions",
+      href: "/solar-solutions",
       disabled: false,
       submenu: [
         {
           id: 21,
           name: "About Solar",
-          href: "/Solar-solutions/about-Solar",
+          href: "/solar-solutions/about-solar",
           disabled: false,
         },
         {
           id: 22,
           name: "Solar energy calculator",
-          href: "/Solar-solutions/solar-energy-calculator",
+          href: "/solar-solutions/solar-energy-calculator",
           disabled: false,
         },
         {
           id: 23,
           name: "Complaints",
-          href: "/Solar-solutions/Complaints",
+          href: "/solar-solutions/complaints",
           disabled: false,
         },
       ],
@@ -52,31 +52,31 @@ const Navbar = () => {
     {
       id: 3,
       name: "EV-solutions",
-      href: "/EV-solutions",
+      href: "/ev-solutions",
       disabled: false,
     },
     {
       id: 4,
       name: "Services",
-      href: "/Services",
+      href: "/services",
       disabled: false,
       submenu: [
         {
           id: 41,
           name: "Commercial",
-          href: "/Services/Commercial",
+          href: "/services/commercial",
           disabled: false,
         },
         {
           id: 42,
           name: "Domestic",
-          href: "/Services/Domestic",
+          href: "/services/domestic",
           disabled: false,
         },
         {
           id: 43,
           name: "Inspection and Testing",
-          href: "/Services/Inspection-and-Testing",
+          href: "/services/inspection-and-testing",
           disabled: false,
         },
       ],
@@ -84,11 +84,11 @@ const Navbar = () => {
     {
       id: 5,
       name: "About",
-      href: "/About",
+      href: "/about",
       disabled: false,
     },
-    { id: 6, name: "Contact", href: "/Contact", disabled: false },
-    { id: 7, name: "Blog", href: "/Blog", disabled: false },
+    { id: 6, name: "Contact", href: "/contact", disabled: false },
+    { id: 7, name: "Blog", href: "/blog", disabled: false },
   ];
 
   const handleSubmenuToggle = (id: number) => {
