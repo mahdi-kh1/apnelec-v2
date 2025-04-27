@@ -402,7 +402,7 @@ const ComplaintsPage: React.FC = () => {
                 If you have any questions or need assistance with our services, our team is ready to help.
               </p>
               <Link 
-                href="/Contact" 
+                href="/contact" 
                 className="inline-flex items-center px-8 py-4 rounded-lg bg-white text-blue-700 hover:bg-blue-50 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 Contact us

@@ -267,7 +267,7 @@ const About: React.FC = () => {
                 Moving away from fossil fuels is imperative for our planet.
               </p>
               <Link
-                href="/Contact"
+                href="/contact"
                 className="inline-flex items-center px-6 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 Contact us
@@ -451,7 +451,7 @@ const About: React.FC = () => {
               Contact APN Elec today for all your electrical, solar, and EV charging needs. We provide free consultations and quotes.
             </p>
             <Link
-              href="/Contact"
+              href="/contact"
               className="inline-flex items-center px-8 py-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
             >
               Contact us today

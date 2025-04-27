@@ -336,7 +336,7 @@ const AboutSolarPage: React.FC = () => {
               </p>
               
               <Link
-                href="/Solar-solutions/Solar-energy-calculator"
+                href="/solar-solutions/solar-energy-calculator"
                 className="inline-flex items-center px-6 py-3 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
               >
                 Check how many kilowatts your home can produce
@@ -349,7 +349,7 @@ const AboutSolarPage: React.FC = () => {
               className="md:w-1/3"
             >
               <Link
-                href="/Solar-solutions/Solar-energy-calculator"
+                href="/solar-solutions/solar-energy-calculator"
                 className="block relative rounded-xl overflow-hidden shadow-xl transition-all duration-500 hover:shadow-2xl transform hover:scale-[1.03]"
               >
                 <Image
@@ -389,7 +389,7 @@ const AboutSolarPage: React.FC = () => {
                 Contact APN Elec today for a free consultation and quote. Our experts will help determine the perfect solar solution for your home.
               </p>
               <Link 
-                href="/Contact" 
+                href="/contact" 
                 className="inline-flex items-center px-8 py-4 rounded-lg bg-white text-yellow-600 hover:bg-yellow-50 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 Get a free quote

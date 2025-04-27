@@ -185,7 +185,7 @@ export default function BlogList() {
           {blogs.map((blog) => (
             <motion.div key={blog.id} variants={item}>
               <Link 
-                href={`/Blog/${blog.id.toString()}`}
+                href={`/blog/${blog.id.toString()}`}
                 className="group block"
               >
                 <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden h-full transition-all duration-300 hover:shadow-md hover:scale-[1.02]">
