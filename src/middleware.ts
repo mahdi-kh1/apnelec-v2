@@ -3,6 +3,21 @@ import { getToken } from 'next-auth/jwt'
 import type { NextRequest } from 'next/server'
 import { withAuth } from "next-auth/middleware";
 
+// Add a function to handle case sensitivity
+function handleCaseSensitivity(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const lowercasePath = pathname.toLowerCase();
+  
+  // If the path has uppercase letters, redirect to lowercase
+  if (pathname !== lowercasePath) {
+    const url = req.nextUrl.clone();
+    url.pathname = lowercasePath;
+    return NextResponse.redirect(url);
+  }
+  
+  return null;
+}
+
 // Paths that require authentication
 const protectedPaths = [
   "/admin",
@@ -41,6 +56,12 @@ function isBackNavigation(req: NextRequest): boolean {
 // We'll use a single middleware function with withAuth
 export default withAuth(
   async function middleware(req) {
+    // First check for case sensitivity issues
+    const caseSensitivityRedirect = handleCaseSensitivity(req);
+    if (caseSensitivityRedirect) {
+      return caseSensitivityRedirect;
+    }
+    
     const { pathname } = req.nextUrl
     const token = req.nextauth.token;
     

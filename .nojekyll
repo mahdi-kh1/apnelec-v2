@@ -1,0 +1,3 @@
+# This file ensures that GitHub Pages and other systems
+# do not try to process this folder with Jekyll
+# which can cause case-sensitivity issues 
