@@ -12,8 +12,15 @@
       "src": "package.json",
       "use": "@vercel/next",
       "config": {
-        "zeroConfig": true
+        "zeroConfig": true,
+        "forceBuildCacheClear": true
       }
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/clear-cache",
+      "schedule": "0 5 * * *"
     }
   ]
 } 
