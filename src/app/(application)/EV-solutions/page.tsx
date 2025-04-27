@@ -354,7 +354,7 @@ const EvSolutionsPage: React.FC = () => {
                 APN Elec are approved installers for leading EV charging solutions. Contact us today for a personalized quote.
               </p>
               <Link 
-                href="/contact" 
+                href="/Contact" 
                 className="inline-flex items-center px-8 py-4 rounded-lg bg-white text-blue-700 hover:bg-blue-50 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
               >
                 Contact us today

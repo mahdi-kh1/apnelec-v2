@@ -306,7 +306,7 @@ export default function Home() {
                 className="mt-8 md:mt-12"
               >
                 <Link
-                  href="/contact"
+                  href="/Contact"
                   className="inline-flex items-center px-6 py-3 md:px-8 md:py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-base md:text-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1"
                 >
                   Get a Free Quote
@@ -422,13 +422,13 @@ export default function Home() {
             className="flex flex-col sm:flex-row justify-center gap-4 md:gap-6"
           >
             <Link 
-              href="/contact" 
+              href="/Contact" 
               className="px-6 py-3 md:px-10 md:py-5 bg-white text-indigo-600 hover:bg-blue-50 rounded-lg text-base md:text-xl font-bold transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-1"
             >
               Get Started
             </Link>
             <Link 
-              href="/about" 
+              href="/About" 
               className="px-6 py-3 md:px-10 md:py-5 border-2 border-white text-white hover:bg-white/10 rounded-lg text-base md:text-xl font-bold transition-all duration-300 hover:shadow-2xl transform hover:-translate-y-1"
             >
               Learn More About Us

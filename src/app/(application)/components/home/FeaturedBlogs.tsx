@@ -117,7 +117,7 @@ export default function FeaturedBlogs() {
       <div className="text-center py-8">
         <p className="text-lg text-gray-600 dark:text-gray-400">No featured blog posts available.</p>
         <Link 
-          href="/blog" 
+          href="/Blog" 
           className="inline-flex items-center px-6 py-3 mt-4 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-all duration-300 transform hover:-translate-y-1"
         >
           Browse all posts
@@ -137,7 +137,7 @@ export default function FeaturedBlogs() {
       {blogs.map((blog) => (
         <motion.div key={blog.id} variants={item} className="h-full">
           <Link 
-            href={`/blog/${blog.id.toString()}`}
+            href={`/Blog/${blog.id.toString()}`}
             className="group block h-full"
           >
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden h-full transition-all duration-300 hover:shadow-xl hover:scale-[1.02]">
@@ -174,7 +174,7 @@ export default function FeaturedBlogs() {
       
       <motion.div variants={item} className="md:col-span-3 flex justify-center mt-8">
         <Link 
-          href="/blog" 
+          href="/Blog" 
           className="inline-flex items-center px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-lg transition-all duration-300 hover:shadow-xl transform hover:-translate-y-1"
         >
           View all posts

@@ -88,14 +88,14 @@ export default function SolarSolutionsPage() {
               </p>
               <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                 <Link 
-                  href="/solar-solutions/about-solar"
+                  href="/Solar-solutions/about-Solar"
                   className="inline-flex items-center px-6 py-3 rounded-lg bg-yellow-600 hover:bg-yellow-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   Learn more
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
                 <Link 
-                  href="/contact"
+                  href="/Contact"
                   className="inline-flex items-center px-6 py-3 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700 font-medium hover:bg-gray-50 dark:hover:bg-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
                 >
                   Contact us
@@ -254,7 +254,7 @@ export default function SolarSolutionsPage() {
               
               <div className="mt-8">
                 <Link
-                  href="/solar-solutions/solar-energy-calculator"
+                  href="/Solar-solutions/Solar-energy-calculator"
                   className="inline-flex items-center text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 font-medium"
                 >
                   Check how many kilowatts your home can produce
@@ -285,14 +285,14 @@ export default function SolarSolutionsPage() {
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link 
-                  href="/contact" 
+                  href="/Contact" 
                   className="inline-flex items-center px-8 py-4 rounded-lg bg-white text-yellow-600 hover:bg-yellow-50 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   Get a free quote
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Link>
                 <Link 
-                  href="/solar-solutions/about-solar" 
+                  href="/Solar-solutions/about-Solar" 
                   className="inline-flex items-center px-8 py-4 rounded-lg bg-transparent border-2 border-white text-white hover:bg-white/10 text-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
                 >
                   Learn more
