@@ -1,33 +1,35 @@
-import { promises as fs } from 'fs';
-import path from 'path';
-import ExcelJS from 'exceljs';
+import { promises as fs } from "fs";
+import path from "path";
+import ExcelJS from "exceljs";
 
 export interface SolarCalculationInputs {
-  pvOutput: number;  // kWp
+  pvOutput: number; // kWp
   postcode: string;
-  slope: number;  // degrees
-  orientation: number;  // degrees
-  shadeFactor: number;  // percentage
-  occupancyType: 'home_all_day' | 'in_half_day' | 'out_all_day' | 'unknown';
-  annualConsumption: number;  // kWh
+  slope: number; // degrees
+  orientation: number; // degrees
+  shadeFactor: number; // percentage
+  occupancyType: "home_all_day" | "in_half_day" | "out_all_day" | "unknown";
+  annualConsumption: number; // kWh
 }
 
 export interface SolarCalculationResult {
-  annualACOutput: number;  // kWh
+  annualACOutput: number; // kWh
   selfConsumptionPercentage: number;
-  estimatedSavings: number;  // £
+  estimatedSavings: number; // £
   zone: string;
 }
 
-export async function getZoneFromPostcode(postcode: string): Promise<string | null> {
+export async function getZoneFromPostcode(
+  postcode: string
+): Promise<string | null> {
   try {
     const normalizedPostcode = postcode.toLowerCase();
-    
+
     // Read the CSV file
-    const csvPath = path.join(process.cwd(), 'documents', 'PostcodeZone.csv');
-    const csvContent = await fs.readFile(csvPath, 'utf-8');
-    const lines = csvContent.toLowerCase().replace(/\r/g, '').split('\n');
-    const headers = lines.shift()?.split(',') || [];
+    const csvPath = path.join(process.cwd(), "documents", "PostcodeZone.csv");
+    const csvContent = await fs.readFile(csvPath, "utf-8");
+    const lines = csvContent.toLowerCase().replace(/\r/g, "").split("\n");
+    const headers = lines.shift()?.split(",") || [];
 
     // Find the zone for the postcode
     let numOfChars = 4;
@@ -36,14 +38,14 @@ export async function getZoneFromPostcode(postcode: string): Promise<string | nu
     while (numOfChars > 0 && !postcodeZone) {
       const searchPostcode = normalizedPostcode.substr(0, numOfChars);
       postcodeZone = lines
-        .map(line => {
-          const values = line.split(',');
+        .map((line) => {
+          const values = line.split(",");
           return headers.reduce((obj: any, header, i) => {
             obj[header] = values[i];
             return obj;
           }, {});
         })
-        .find(e => e.postcode === searchPostcode);
+        .find((e) => e.postcode === searchPostcode);
       numOfChars--;
     }
 
@@ -51,9 +53,9 @@ export async function getZoneFromPostcode(postcode: string): Promise<string | nu
       return null;
     }
 
-    return 'Z' + postcodeZone.zone.toUpperCase();
+    return "Z" + postcodeZone.zone.toUpperCase();
   } catch (error) {
-    console.error('Error in getZoneFromPostcode:', error);
+    console.error("Error in getZoneFromPostcode:", error);
     return null;
   }
 }
@@ -67,27 +69,27 @@ let irradianceDataCache: { [key: string]: any } = {};
 //     // const roundedSlope = Math.round(slope / 5) * 5;
 //     // Clamp slope between 0 and 90 degrees
 //     const clampedSlope = Math.max(0, Math.min(90, slope));
-    
+
 //     // Make sure orientation is in the correct range (-180 to 180)
 //     let orientationValue = orientation;
 //     if (orientationValue < -180) orientationValue = -180;
 //     if (orientationValue > 180) orientationValue = 180;
-    
+
 //     // Convert to positive for lookup (Excel only has 0-180)
 //     const positiveOrientation = Math.abs(orientationValue);
 //     const roundedOrientation = Math.round(positiveOrientation / 5) * 5;
 //     // Clamp orientation between 0 and 180 degrees
 //     const clampedOrientation = Math.min(180, roundedOrientation);
-    
+
 //     // Check if we have the data in cache
 //     const cacheKey = `${zone}_${clampedSlope}_${clampedOrientation}`;
 //     if (irradianceDataCache[cacheKey] !== undefined) {
 //       console.log(`Using cached irradiance data for ${cacheKey}: ${irradianceDataCache[cacheKey]}`);
 //       return irradianceDataCache[cacheKey];
 //     }
-    
+
 //     console.log(`Looking up irradiance data for zone: ${zone}, slope: ${clampedSlope}, orientation: ${clampedOrientation}`);
-    
+
 //     // Map zone to region
 //     const regions: { [key: string]: string } = {
 //       'Z1': 'Zone 1 - London',
@@ -116,7 +118,7 @@ let irradianceDataCache: { [key: string]: any } = {};
 //       'Z20': 'Zone 20 - Lerwick',
 //       'Z21': 'Zone 21 - Belfast'
 //     };
-    
+
 //     // Get region from zone
 //     let region: string;
 //     if (regions[zone]) {
@@ -130,9 +132,9 @@ let irradianceDataCache: { [key: string]: any } = {};
 //         region = zone; // Fallback to zone code
 //       }
 //     }
-    
+
 //     console.log(`Using region "${region}" for zone ${zone}`);
-    
+
 //     // Check if the Excel file exists
 //     const excelPath = path.join(process.cwd(), 'documents', 'Irradiance-Datasets.xlsx');
 //     try {
@@ -141,9 +143,9 @@ let irradianceDataCache: { [key: string]: any } = {};
 //       console.error(`Error accessing Irradiance-Datasets.xlsx: ${error}`);
 //       return 950; // Default value if file doesn't exist
 //     }
-    
+
 //     console.log('Access to Irradiance-Datasets.xlsx successful');
-    
+
 //     // Read the Excel file
 //     let workbook;
 //     try {
@@ -153,31 +155,31 @@ let irradianceDataCache: { [key: string]: any } = {};
 //       console.error(`Error reading Excel file: ${error}`);
 //       return 950; // Default value
 //     }
-    
+
 //     console.log('Successfully read Irradiance-Datasets.xlsx');
-    
+
 //     // List all worksheet names for debugging
 //     console.log('Available worksheets:', workbook.worksheets.map(ws => ws.name));
-    
+
 //     // Access the worksheet by region name
 //     const worksheet = workbook.getWorksheet(region);
-    
+
 //     if (!worksheet) {
 //       console.error(`No worksheet found for region "${region}"`);
 //       console.log('Falling back to first worksheet');
 //       const fallbackWorksheet = workbook.worksheets[0];
-      
+
 //       if (!fallbackWorksheet) {
 //         console.error('No worksheets found in the workbook');
 //         return 950; // Default value
 //       }
-      
+
 //       // Use the fallback worksheet
 //       return processWorksheet(fallbackWorksheet, clampedSlope, clampedOrientation, cacheKey);
 //     }
-    
+
 //     console.log(`Accessing worksheet for region: ${region}`);
-    
+
 //     return processWorksheet(worksheet, clampedSlope, clampedOrientation, cacheKey);
 //   } catch (error) {
 //     console.error('Error reading irradiance data:', error);
@@ -187,7 +189,11 @@ let irradianceDataCache: { [key: string]: any } = {};
 
 // Helper function to process worksheet data
 
-async function getIrradianceData(zone: string, slope: number, orientation: number): Promise<number> {
+async function getIrradianceData(
+  zone: string,
+  slope: number,
+  orientation: number
+): Promise<number> {
   try {
     const clampedSlope = Math.max(0, Math.min(90, slope));
 
@@ -200,38 +206,42 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
 
     const cacheKey = `${zone}_${clampedSlope}_${clampedOrientation}`;
     if (irradianceDataCache[cacheKey] !== undefined) {
-      console.log(`Using cached irradiance data for ${cacheKey}: ${irradianceDataCache[cacheKey]}`);
+      console.log(
+        `Using cached irradiance data for ${cacheKey}: ${irradianceDataCache[cacheKey]}`
+      );
       return irradianceDataCache[cacheKey];
     }
 
-    console.log(`Looking up irradiance data for zone: ${zone}, slope: ${clampedSlope}, orientation: ${clampedOrientation}`);
+    console.log(
+      `Looking up irradiance data for zone: ${zone}, slope: ${clampedSlope}, orientation: ${clampedOrientation}`
+    );
 
     const regions: { [key: string]: string } = {
-      'Z1': 'Zone 1 - London',
-      'Z2': 'Zone 2 - Brighton',
-      'Z3': 'Zone 3 - Southampton',
-      'Z4': 'Zone 4 - Plymouth',
-      'Z5E': 'Zone 5E - Bristol',
-      'Z5W': 'Zone 5W - Cardiff',
-      'Z6': 'Zone 6 - Birmingham',
-      'Z7E': 'Zone 7E - Manchester',
-      'Z7W': 'Zone 7W - Chester',
-      'Z8E': 'Zone 8E - Carlisle',
-      'Z8S': 'Zone 8S - Dumfries',
-      'Z9E': 'Zone 9E - Newcastle',
-      'Z9S': 'Zone 9S - Edinburgh',
-      'Z10': 'Zone 10 - Middlesborough',
-      'Z11': 'Zone 11 - Sheffield',
-      'Z12': 'Zone 12 - Norwich',
-      'Z13': 'Zone 13 - Aberystwith',
-      'Z14': 'Zone 14 - Glasgow',
-      'Z15': 'Zone 15 - Dundee',
-      'Z16': 'Zone 16 - Aberdeen',
-      'Z17': 'Zone 17 - Inverness',
-      'Z18': 'Zone 18 - Stornoway',
-      'Z19': 'Zone 19 - Kirkwall',
-      'Z20': 'Zone 20 - Lerwick',
-      'Z21': 'Zone 21 - Belfast'
+      Z1: "Zone 1 - London",
+      Z2: "Zone 2 - Brighton",
+      Z3: "Zone 3 - Southampton",
+      Z4: "Zone 4 - Plymouth",
+      Z5E: "Zone 5E - Bristol",
+      Z5W: "Zone 5W - Cardiff",
+      Z6: "Zone 6 - Birmingham",
+      Z7E: "Zone 7E - Manchester",
+      Z7W: "Zone 7W - Chester",
+      Z8E: "Zone 8E - Carlisle",
+      Z8S: "Zone 8S - Dumfries",
+      Z9E: "Zone 9E - Newcastle",
+      Z9S: "Zone 9S - Edinburgh",
+      Z10: "Zone 10 - Middlesborough",
+      Z11: "Zone 11 - Sheffield",
+      Z12: "Zone 12 - Norwich",
+      Z13: "Zone 13 - Aberystwith",
+      Z14: "Zone 14 - Glasgow",
+      Z15: "Zone 15 - Dundee",
+      Z16: "Zone 16 - Aberdeen",
+      Z17: "Zone 17 - Inverness",
+      Z18: "Zone 18 - Stornoway",
+      Z19: "Zone 19 - Kirkwall",
+      Z20: "Zone 20 - Lerwick",
+      Z21: "Zone 21 - Belfast",
     };
 
     let region: string;
@@ -246,7 +256,11 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
       }
     }
 
-    const excelPath = path.join(process.cwd(), 'documents', 'Irradiance-Datasets.xlsx');
+    const excelPath = path.join(
+      process.cwd(),
+      "documents",
+      "Irradiance-Datasets.xlsx"
+    );
     try {
       await fs.access(excelPath);
     } catch (error) {
@@ -271,24 +285,28 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
 
     console.log(`Accessing worksheet for region: ${region}`);
 
-    return processWorksheet(worksheet, clampedSlope, clampedOrientation, cacheKey);
+    return processWorksheet(
+      worksheet,
+      clampedSlope,
+      clampedOrientation,
+      cacheKey
+    );
   } catch (error) {
-    console.error('Error reading irradiance data:', error);
+    console.error("Error reading irradiance data:", error);
     return 950; // Default value
   }
 }
-
 
 // function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, clampedOrientation: number, cacheKey: string): number {
 //   // Find the row for the slope
 //   let targetRow: any = null;
 //   let exactMatch = false;
-  
+
 //   worksheet.eachRow((row, rowNumber) => {
 //     if (rowNumber === 1) return; // Skip header row
-    
+
 //     // console.log(`Row ${rowNumber} values:`, row.values);
-    
+
 //     let rowSlope;
 //     try {
 //       rowSlope = Number(row.getCell(2).value);
@@ -296,7 +314,7 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
 //       console.warn(`Error reading slope value in row ${rowNumber}: ${error}`);
 //       return; // Skip this row
 //     }
-    
+
 //     if (!isNaN(rowSlope)) {
 //       if (rowSlope === clampedSlope) {
 //         targetRow = row;
@@ -308,17 +326,17 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
 //       }
 //     }
 //   });
-  
+
 //   if (!targetRow) {
 //     console.error(`No data found for slope ${clampedSlope}, using default value`);
 //     return 950; // Default value
 //   }
-  
+
 //   // Find the column for the orientation
 //   // Headers are in 5-degree increments from 0 to 180
 //   const orientationStep = 5;
 //   const orientationIndex = Math.round(clampedOrientation / orientationStep) + 2; // +2 because first column is slope
-  
+
 //   let irradianceCell;
 //   try {
 //     irradianceCell = targetRow.getCell(orientationIndex);
@@ -326,12 +344,12 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
 //     console.error(`Error accessing cell for orientation ${clampedOrientation}: ${error}`);
 //     return 950; // Default value
 //   }
-  
+
 //   if (!irradianceCell || irradianceCell.value === null) {
 //     console.error(`No data found for orientation ${clampedOrientation}, using default value`);
 //     return 950; // Default value
 //   }
-  
+
 //   let irradiance;
 //   try {
 //     irradiance = Number(irradianceCell.value);
@@ -339,25 +357,30 @@ async function getIrradianceData(zone: string, slope: number, orientation: numbe
 //     console.error(`Error converting irradiance value to number: ${error}`);
 //     return 950; // Default value
 //   }
-  
+
 //   if (isNaN(irradiance)) {
 //     console.error(`Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`);
 //     return 950; // Default value
 //   }
-  
+
 //   console.log(`Successfully retrieved irradiance value: ${irradiance}`);
-  
+
 //   // Cache the result
 //   irradianceDataCache[cacheKey] = irradiance;
-  
+
 //   console.log('Successfully accessed worksheet');
-  
+
 //   return irradiance;
 // }
 
 // Cache for peak velocity pressure data
 
-function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, clampedOrientation: number, cacheKey: string): number {
+function processWorksheet(
+  worksheet: ExcelJS.Worksheet,
+  clampedSlope: number,
+  clampedOrientation: number,
+  cacheKey: string
+): number {
   let targetRow: any = null;
   let exactMatch = false;
 
@@ -386,7 +409,9 @@ function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, cl
   });
 
   if (!targetRow) {
-    console.error(`No data found for slope ${clampedSlope}, using default value`);
+    console.error(
+      `No data found for slope ${clampedSlope}, using default value`
+    );
     return 950; // مقدار پیش‌فرض
   }
 
@@ -398,12 +423,16 @@ function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, cl
   try {
     irradianceCell = targetRow.getCell(orientationIndex); // سلول مناسب با جهت‌گیری
   } catch (error) {
-    console.error(`Error accessing cell for orientation ${clampedOrientation}: ${error}`);
+    console.error(
+      `Error accessing cell for orientation ${clampedOrientation}: ${error}`
+    );
     return 950; // مقدار پیش‌فرض
   }
 
   if (!irradianceCell || irradianceCell.value === null) {
-    console.error(`No data found for orientation ${clampedOrientation}, using default value`);
+    console.error(
+      `No data found for orientation ${clampedOrientation}, using default value`
+    );
     return 950; // مقدار پیش‌فرض
   }
 
@@ -416,7 +445,9 @@ function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, cl
   }
 
   if (isNaN(irradiance)) {
-    console.error(`Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`);
+    console.error(
+      `Invalid irradiance value for slope ${clampedSlope}, orientation ${clampedOrientation}`
+    );
     return 950; // مقدار پیش‌فرض
   }
 
@@ -425,11 +456,10 @@ function processWorksheet(worksheet: ExcelJS.Worksheet, clampedSlope: number, cl
   // ذخیره نتیجه در کش
   irradianceDataCache[cacheKey] = irradiance;
 
-  console.log('Successfully accessed worksheet');
+  console.log("Successfully accessed worksheet");
 
   return irradiance;
 }
-
 
 let peakVelocityPressureCache: { [key: string]: number } = {};
 
@@ -439,34 +469,39 @@ async function getPeakVelocityPressure(zone: string): Promise<number> {
     if (peakVelocityPressureCache[zone] !== undefined) {
       return peakVelocityPressureCache[zone];
     }
-    
+
     // Read the CSV file
-    const csvPath = path.join(process.cwd(), 'documents', 'Peak velocity pressures (qp) in pascals.csv');
-    const csvContent = await fs.readFile(csvPath, 'utf-8');
-    const lines = csvContent.split('\n');
-    
-    
+    const csvPath = path.join(
+      process.cwd(),
+      "documents",
+      "Peak velocity pressures (qp) in pascals.csv"
+    );
+    const csvContent = await fs.readFile(csvPath, "utf-8");
+    const lines = csvContent.split("\n");
+
     // Find the row for the zone
-    const zoneRow = lines.find(line => {
-      const values = line.split(',');
+    const zoneRow = lines.find((line) => {
+      const values = line.split(",");
       return values[0] === zone;
     });
-    
+
     if (!zoneRow) {
-      console.error(`No data found for zone ${zone} in peak velocity pressure data`);
+      console.error(
+        `No data found for zone ${zone} in peak velocity pressure data`
+      );
       return 1000; // Default value
     }
-    
+
     // Extract the peak velocity pressure value
-    const values = zoneRow.split(',');
+    const values = zoneRow.split(",");
     const peakVelocityPressure = Number(values[1]);
-    
+
     // Cache the result
     peakVelocityPressureCache[zone] = peakVelocityPressure;
-    
+
     return peakVelocityPressure;
   } catch (error) {
-    console.error('Error reading peak velocity pressure data:', error);
+    console.error("Error reading peak velocity pressure data:", error);
     return 1000; // Default value
   }
 }
@@ -474,28 +509,36 @@ async function getPeakVelocityPressure(zone: string): Promise<number> {
 // Cache for MGD003 lookup tables
 let mgd003Cache: { [key: string]: any } = {};
 
-async function getMGD003Data(sheetName: string, rowKey: string, columnKey: string): Promise<number> {
+async function getMGD003Data(
+  sheetName: string,
+  rowKey: string,
+  columnKey: string
+): Promise<number> {
   try {
     // Check if we have the data in cache
     const cacheKey = `${sheetName}_${rowKey}_${columnKey}`;
     if (mgd003Cache[cacheKey] !== undefined) {
       return mgd003Cache[cacheKey];
     }
-    
+
     // Read the CSV file instead of Excel
-    const csvPath = path.join(process.cwd(), 'documents', 'MGD003-LookupTables-FINAL.csv');
-    const csvContent = await fs.readFile(csvPath, 'utf-8');
-    const lines = csvContent.split('\n');
-    
+    const csvPath = path.join(
+      process.cwd(),
+      "documents",
+      "MGD003-LookupTables-FINAL.csv"
+    );
+    const csvContent = await fs.readFile(csvPath, "utf-8");
+    const lines = csvContent.split("\n");
+
     // Find the performance ratio for the zone
     const zoneNumber = rowKey.substring(1); // Remove 'Z' prefix
     const performanceRatio = 0.75; // Default value
-    
+
     // Parse CSV to find the correct value
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
-      if (line.startsWith(zoneNumber + ',')) {
-        const values = line.split(',');
+      if (line.startsWith(zoneNumber + ",")) {
+        const values = line.split(",");
         if (values.length >= 2) {
           const ratio = Number(values[1]);
           if (!isNaN(ratio)) {
@@ -505,10 +548,10 @@ async function getMGD003Data(sheetName: string, rowKey: string, columnKey: strin
         break;
       }
     }
-    
+
     return performanceRatio;
   } catch (error) {
-    console.error('Error reading MGD003 data:', error);
+    console.error("Error reading MGD003 data:", error);
     return 0.75; // Default performance ratio
   }
 }
@@ -519,21 +562,188 @@ async function calculateSelfConsumption(
   occupancyType: string
 ): Promise<number> {
   try {
+    // Get the appropriate column from the lookup table based on occupancy type
+    let occupancyCategory: string;
+    switch (occupancyType) {
+      case "home_all_day":
+        occupancyCategory = "Home all day";
+        break;
+      case "in_half_day":
+        occupancyCategory = "In half the day";
+        break;
+      case "out_all_day":
+        occupancyCategory = "Out during the day";
+        break;
+      default:
+        occupancyCategory = "Home all day"; // Default to home all day if unknown
+    }
+
+    // Determine which consumption row to use based on annual consumption
+    let consumptionBand: string;
+    
+    if (annualConsumption < 1500) {
+      consumptionBand = "1,500 kWh to 1,999 kWh"; // Use the smallest band if consumption is below 1500
+    } else if (annualConsumption < 2000) {
+      consumptionBand = "1,500 kWh to 1,799 kWh";
+    } else if (annualConsumption < 2500) {
+      consumptionBand = "2,000 kWh to 2,499 kWh";
+    } else if (annualConsumption < 3000) {
+      consumptionBand = "2,500 kWh to 2,999 kWh";
+    } else if (annualConsumption < 3500) {
+      consumptionBand = "3,000 kWh to 3,499 kWh";
+    } else if (annualConsumption < 4000) {
+      consumptionBand = "3,500 kWh to 3,999 kWh";
+    } else if (annualConsumption < 4500) {
+      consumptionBand = "4,000 kWh to 4,499 kWh";
+    } else if (annualConsumption < 5000) {
+      consumptionBand = "4,500 kWh to 4,999 kWh";
+    } else if (annualConsumption < 5500) {
+      consumptionBand = "5,000 kWh to 5,499 kWh";
+    } else {
+      consumptionBand = "5,500 kWh to 5,999 kWh"; // Use the largest band if consumption is above 5500
+    }
+
+    // Determine which generation band to use based on annual output
+    let generationBand: string;
+    
+    if (annualACOutput < 300) {
+      generationBand = "0 kWh to 299 kWh";
+    } else if (annualACOutput < 600) {
+      generationBand = "300 kWh to 599 kWh";
+    } else if (annualACOutput < 900) {
+      generationBand = "600 kWh to 899 kWh";
+    } else if (annualACOutput < 1200) {
+      generationBand = "900 kWh to 1,199 kWh";
+    } else if (annualACOutput < 1500) {
+      generationBand = "1200 kWh to 1,499 kWh";
+    } else if (annualACOutput < 1800) {
+      generationBand = "1500 kWh to 1,799 kWh";
+    } else if (annualACOutput < 2100) {
+      generationBand = "1800 kWh to 2,099 kWh";
+    } else if (annualACOutput < 2400) {
+      generationBand = "2100 kWh to 2,399 kWh";
+    } else if (annualACOutput < 2700) {
+      generationBand = "2400 kWh to 2,699 kWh";
+    } else if (annualACOutput < 3000) {
+      generationBand = "2700 kWh to 2,999 kWh";
+    } else if (annualACOutput < 3300) {
+      generationBand = "3000 kWh to 3,299 kWh";
+    } else if (annualACOutput < 3600) {
+      generationBand = "3300 kWh to 3,599 kWh";
+    } else if (annualACOutput < 3900) {
+      generationBand = "3600 kWh to 3,899 kWh";
+    } else if (annualACOutput < 4200) {
+      generationBand = "3900 kWh to 4,199 kWh";
+    } else if (annualACOutput < 4500) {
+      generationBand = "4200 kWh to 4,499 kWh";
+    } else if (annualACOutput < 4800) {
+      generationBand = "4500 kWh to 4,799 kWh";
+    } else if (annualACOutput < 5100) {
+      generationBand = "4800 kWh to 5,099 kWh";
+    } else if (annualACOutput < 5400) {
+      generationBand = "5100 kWh to 5,399 kWh";
+    } else if (annualACOutput < 5700) {
+      generationBand = "5400 kWh to 5,699 kWh";
+    } else {
+      generationBand = "5700 kWh to 5,999 kWh";
+    }
+
+    // Read the lookup table from CSV
+    try {
+      const csvPath = path.join(
+        process.cwd(),
+        "documents",
+        "MGD003-LookupTables-FINAL.csv"
+      );
+      const csvContent = await fs.readFile(csvPath, "utf-8");
+      const lines = csvContent.split("\n");
+
+      // Find the correct consumption band section in the CSV
+      let sectionFound = false;
+      let selfConsumptionPercentage = 0;
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        
+        // Look for the consumption band header
+        if (line.includes(consumptionBand) && line.includes(occupancyCategory)) {
+          sectionFound = true;
+          
+          // Skip ahead to the data rows (skip header rows)
+          i += 7; // Skip to the data rows
+          
+          // Now iterate through each generation band row
+          while (i < lines.length && lines[i].trim() !== "") {
+            const dataRow = lines[i];
+            
+            // Check if this is the correct generation band
+            if (dataRow.includes(generationBand)) {
+              // Found the right row, extract the "PV Only" value
+              // The format is:
+              // "Annual generation from solar PV system, kWh",0 kWh to 299 kWh,69.5%,...
+              const values = dataRow.split(",");
+              
+              // The value will be in a different position depending on the occupancy type
+              let valuePosition = 0;
+              
+              switch (occupancyCategory) {
+                case "Home all day":
+                  valuePosition = 2; // Third column for "Home all day"
+                  break;
+                case "In half the day":
+                  valuePosition = 19; // Column for "In half the day"
+                  break;
+                case "Out during the day":
+                  valuePosition = 35; // Column for "Out during the day"
+                  break;
+              }
+              
+              if (values[valuePosition]) {
+                // Extract percentage value and convert to decimal
+                selfConsumptionPercentage = parseFloat(values[valuePosition].replace("%", "")) / 100;
+              }
+              
+              break; // Found what we need, exit the loop
+            }
+            
+            i++; // Move to the next data row
+          }
+          
+          if (selfConsumptionPercentage > 0) {
+            break; // Found the value, exit the outer loop
+          }
+        }
+      }
+
+      if (sectionFound && selfConsumptionPercentage > 0) {
+        console.log(`Found self-consumption percentage from lookup table: ${selfConsumptionPercentage * 100}%`);
+        
+        // Calculate the maximum possible self-consumption (limited by annual consumption)
+        const maxPossibleSelfConsumption = Math.min(1, annualConsumption / annualACOutput);
+        
+        // Use the minimum of the two
+        return Math.min(selfConsumptionPercentage, maxPossibleSelfConsumption);
+      }
+    } catch (error) {
+      console.error("Error reading self-consumption lookup table:", error);
+    }
+
+    // Fallback to default calculations if lookup table approach fails
     // Default self-consumption percentages based on occupancy type
     const defaultRates: { [key: string]: number } = {
-      'home_all_day': 0.45,  // 45% self-consumption
-      'in_half_day': 0.30,   // 30% self-consumption
-      'out_all_day': 0.20,   // 20% self-consumption
-      'unknown': 0.30        // 30% self-consumption as default
+      home_all_day: 0.45, // 45% self-consumption
+      in_half_day: 0.3, // 30% self-consumption
+      out_all_day: 0.2, // 20% self-consumption
+      unknown: 0.3, // 30% self-consumption as default
     };
-    
+
     // Get base rate for this occupancy type
-    const type = occupancyType || 'unknown';
-    const baseRate = defaultRates[type] || 0.30;
-    
+    const type = occupancyType || "unknown";
+    const baseRate = defaultRates[type] || 0.3;
+
     // Calculate the ratio of production to consumption
     const ratio = annualACOutput / annualConsumption;
-    
+
     // If production exceeds consumption, cap self-consumption based on consumption
     if (ratio > 1) {
       // Maximum possible self-consumption (as a percentage of generation)
@@ -543,111 +753,96 @@ async function calculateSelfConsumption(
       return baseRate;
     }
   } catch (error) {
-    console.error('Error calculating self-consumption:', error);
-    return 0.30; // Default 30% as fallback
+    console.error("Error calculating self-consumption:", error);
+    return 0.3; // Default 30% as fallback
   }
 }
 
 export interface DetailedSolarCalculationResult {
   // A. Installation data
-  installedCapacity: number;  // kWp
-  orientation: number;  // degrees from south
-  inclination: number;  // degrees from horizontal
+  installedCapacity: number; // kWp
+  orientation: number; // degrees from south
+  inclination: number; // degrees from horizontal
   postcode: string;
-  region: string;  // derived from zone
-  
+  region: string; // derived from zone
+
   // B. Performance calculations
-  kwhPerKwp: number;  // kWh/kWp (Kk)
-  shadeFactor: number;  // %
-  estimatedAnnualOutput: number;  // kWh
-  
+  kwhPerKwp: number; // kWh/kWp (Kk)
+  shadeFactor: number; // %
+  estimatedAnnualOutput: number; // kWh
+
   // C. Estimated PV self-consumption - PV Only
   occupancyArchetype: string;
-  annualElectricityConsumption: number;  // kWh
-  expectedSelfConsumption: number;  // kWh
-  gridIndependence: number;  // %
-  
+  annualElectricityConsumption: number; // kWh
+  selfConsumptionRate: number; // % - Percentage of generated electricity that is self-consumed
+  expectedSelfConsumption: number; // kWh - Amount of generated electricity that is self-consumed
+  exportedElectricity: number; // kWh - Amount of generated electricity exported to the grid
+  gridIndependence: number; // % - Percentage of total consumption covered by PV
+
   // D. Estimated PV self-consumption - With EESS
-  batteryCapacity: number;  // kWh
-  expectedSelfConsumptionWithBattery: number;  // kWh
-  gridIndependenceWithBattery: number;  // %
+  batteryCapacity: number; // kWh
+  expectedSelfConsumptionWithBattery: number; // kWh
+  gridIndependenceWithBattery: number; // %
 }
 
-export async function calculateSolarOutput(params: SolarCalculationInputs): Promise<DetailedSolarCalculationResult | null> {
+export async function calculateSolarOutput(
+  params: SolarCalculationInputs
+): Promise<DetailedSolarCalculationResult | null> {
   try {
     if (!params) {
-      console.error('Solar calculation params are null');
+      console.error("Solar calculation params are null");
       return null;
     }
-    
-    const { pvOutput, postcode, slope, orientation, shadeFactor, occupancyType, annualConsumption } = params;
-    
-    console.log('Starting solar calculation with params:', params);
-    
+
+    const {
+      pvOutput,
+      postcode,
+      slope,
+      orientation,
+      shadeFactor,
+      occupancyType,
+      annualConsumption,
+    } = params;
+
+    console.log("Starting solar calculation with params:", params);
+
     // STEP 1: Get zone and region
     const zone = await getZoneFromPostcode(postcode);
-    console.log('Determined zone:', zone);
+    console.log("Determined zone:", zone);
     if (!zone) {
-      console.error('Could not determine zone from postcode');
+      console.error("Could not determine zone from postcode");
       return null;
     }
-    
+
     // Map zone to region
-    // const regions: { [key: string]: string } = {
-    //   'Z1': 'South East England',
-    //   'Z2': 'South England',
-    //   'Z3': 'South West England',
-    //   'Z4': 'South West Peninsula',
-    //   'Z5E': 'Thames Valley East',
-    //   'Z5W': 'Thames Valley West',
-    //   'Z6': 'Midlands',
-    //   'Z7E': 'West Pennines East',
-    //   'Z7W': 'West Pennines West',
-    //   'Z8E': 'North West England East',
-    //   'Z8S': 'North West England South',
-    //   'Z9E': 'North East England East',
-    //   'Z9S': 'North East England South',
-    //   'Z10': 'Borders',
-    //   'Z11': 'Yorkshire',
-    //   'Z12': 'East Anglia',
-    //   'Z13': 'Wales',
-    //   'Z14': 'West Scotland',
-    //   'Z15': 'East Scotland',
-    //   'Z16': 'North East Scotland',
-    //   'Z17': 'Highland',
-    //   'Z18': 'Western Isles',
-    //   'Z19': 'Orkney',
-    //   'Z20': 'Shetland',
-    //   'Z21': 'Northern Ireland'
-    // };
     const regions: { [key: string]: string } = {
-      'Z1': 'Zone 1 - London',
-      'Z2': 'Zone 2 - Brighton',
-      'Z3': 'Zone 3 - Southampton',
-      'Z4': 'Zone 4 - Plymouth',
-      'Z5E': 'Zone 5E - Bristol',
-      'Z5W': 'Zone 5W - Cardiff',
-      'Z6': 'Zone 6 - Birmingham',
-      'Z7E': 'Zone 7E - Manchester',
-      'Z7W': 'Zone 7W - Chester',
-      'Z8E': 'Zone 8E - Carlisle',
-      'Z8S': 'Zone 8S - Dumfries',
-      'Z9E': 'Zone 9E - Newcastle',
-      'Z9S': 'Zone 9S - Edinburgh',
-      'Z10': 'Zone 10 - Middlesborough',
-      'Z11': 'Zone 11 - Sheffield',
-      'Z12': 'Zone 12 - Norwich',
-      'Z13': 'Zone 13 - Aberystwith',
-      'Z14': 'Zone 14 - Glasgow',
-      'Z15': 'Zone 15 - Dundee',
-      'Z16': 'Zone 16 - Aberdeen',
-      'Z17': 'Zone 17 - Inverness',
-      'Z18': 'Zone 18 - Stornoway',
-      'Z19': 'Zone 19 - Kirkwall',
-      'Z20': 'Zone 20 - Lerwick',
-      'Z21': 'Zone 21 - Belfast'
+      Z1: "Zone 1 - London",
+      Z2: "Zone 2 - Brighton",
+      Z3: "Zone 3 - Southampton",
+      Z4: "Zone 4 - Plymouth",
+      Z5E: "Zone 5E - Bristol",
+      Z5W: "Zone 5W - Cardiff",
+      Z6: "Zone 6 - Birmingham",
+      Z7E: "Zone 7E - Manchester",
+      Z7W: "Zone 7W - Chester",
+      Z8E: "Zone 8E - Carlisle",
+      Z8S: "Zone 8S - Dumfries",
+      Z9E: "Zone 9E - Newcastle",
+      Z9S: "Zone 9S - Edinburgh",
+      Z10: "Zone 10 - Middlesborough",
+      Z11: "Zone 11 - Sheffield",
+      Z12: "Zone 12 - Norwich",
+      Z13: "Zone 13 - Aberystwith",
+      Z14: "Zone 14 - Glasgow",
+      Z15: "Zone 15 - Dundee",
+      Z16: "Zone 16 - Aberdeen",
+      Z17: "Zone 17 - Inverness",
+      Z18: "Zone 18 - Stornoway",
+      Z19: "Zone 19 - Kirkwall",
+      Z20: "Zone 20 - Lerwick",
+      Z21: "Zone 21 - Belfast",
     };
-    
+
     // Extract region from zone (handle subzones like Z5E, Z5W, etc.)
     let region: string;
     if (regions[zone]) {
@@ -661,66 +856,86 @@ export async function calculateSolarOutput(params: SolarCalculationInputs): Prom
         region = zone; // Fallback to zone code
       }
     }
-    
-    console.log('Using region:', region);
-    
+
+    console.log("Using region:", region);
+
     // STEP 2: Get irradiance data (kWh/kWp)
-    console.log('Looking up irradiance data for slope:', slope, 'orientation:', orientation);
+    console.log(
+      "Looking up irradiance data for slope:",
+      slope,
+      "orientation:",
+      orientation
+    );
     const kwhPerKwp = await getIrradianceData(zone, slope, orientation);
-    console.log('Retrieved kWh/kWp:', kwhPerKwp);
-    
+    console.log("Retrieved kWh/kWp:", kwhPerKwp);
+
     // STEP 3: Get performance ratio
-    console.log('Looking up performance ratio from MGD003');
-    const performanceRatio = await getMGD003Data('Performance Ratio', zone, 'Standard');
-    console.log('Retrieved performance ratio:', performanceRatio);
-    
+    console.log("Looking up performance ratio from MGD003");
+    const performanceRatio = await getMGD003Data(
+      "Performance Ratio",
+      zone,
+      "Standard"
+    );
+    console.log("Retrieved performance ratio:", performanceRatio);
+
     // STEP 4: Calculate annual output
-    const shadeFactorDecimal = 1 - (shadeFactor / 100);
-    const estimatedAnnualOutput = kwhPerKwp * pvOutput * performanceRatio * shadeFactorDecimal;
-    console.log('Calculated annual output:', estimatedAnnualOutput);
-    
+    const shadeFactorDecimal = 1 - shadeFactor / 100;
+    const estimatedAnnualOutput = kwhPerKwp * pvOutput * shadeFactorDecimal;
+    console.log("Calculated annual output:", estimatedAnnualOutput);
+
     // STEP 5: Calculate self-consumption
-    const selfConsumptionPercentage = await calculateSelfConsumption(
+    const selfConsumptionRate = await calculateSelfConsumption(
       annualConsumption,
       estimatedAnnualOutput,
       occupancyType
     );
-    console.log('Calculated self-consumption percentage:', selfConsumptionPercentage);
-    
+    console.log(
+      "Calculated self-consumption rate:",
+      selfConsumptionRate
+    );
+
     // STEP 6: Calculate with battery (if applicable)
     const batteryCapacity = 0; // No battery in this calculation
-    const selfConsumptionWithBattery = selfConsumptionPercentage; // Same as without battery for now
+    const selfConsumptionWithBattery = selfConsumptionRate; // Same as without battery for now
+
+    // STEP 7: Calculate self-consumption values and grid independence
+    let expectedSelfConsumption = Math.round(
+      estimatedAnnualOutput * selfConsumptionRate
+    );
     
-    // STEP 7: Calculate grid independence - must not exceed 100%
-    let expectedSelfConsumption = Math.round(estimatedAnnualOutput * selfConsumptionPercentage);
     // Ensure self-consumption doesn't exceed annual consumption
     if (expectedSelfConsumption > annualConsumption) {
       expectedSelfConsumption = annualConsumption;
     }
     
-    const gridIndependence = (expectedSelfConsumption / annualConsumption) * 100;
+    // Calculate exported electricity
+    const exportedElectricity = Math.round(estimatedAnnualOutput - expectedSelfConsumption);
+
+    // Calculate grid independence - must not exceed 100%
+    const gridIndependence = Math.min(100, (expectedSelfConsumption / annualConsumption) * 100);
     const gridIndependenceWithBattery = gridIndependence; // Same as without battery for now
-    
+
     // Convert occupancy type to more readable format
     let occupancyArchetype: string;
-    switch(occupancyType) {
-      case 'home_all_day':
+    switch (occupancyType) {
+      case "home_all_day":
         occupancyArchetype = "Home All Day";
         break;
-      case 'in_half_day':
+      case "in_half_day":
         occupancyArchetype = "In Half Day";
         break;
-      case 'out_all_day':
+      case "out_all_day":
         occupancyArchetype = "Out All Day";
         break;
       default:
         occupancyArchetype = "Unknown";
         break;
     }
-    
-    console.log('Expected self-consumption:', expectedSelfConsumption);
-    console.log('Grid independence:', gridIndependence);
-    
+
+    console.log("Expected self-consumption:", expectedSelfConsumption);
+    console.log("Exported electricity:", exportedElectricity);
+    console.log("Grid independence:", gridIndependence);
+
     return {
       // A. Installation data
       installedCapacity: pvOutput,
@@ -728,25 +943,27 @@ export async function calculateSolarOutput(params: SolarCalculationInputs): Prom
       inclination: slope,
       postcode: postcode,
       region: region,
-      
+
       // B. Performance calculations
       kwhPerKwp: kwhPerKwp,
       shadeFactor: shadeFactor,
       estimatedAnnualOutput: Math.round(estimatedAnnualOutput),
-      
+
       // C. Estimated PV self-consumption - PV Only
       occupancyArchetype: occupancyArchetype,
       annualElectricityConsumption: annualConsumption,
+      selfConsumptionRate: parseFloat((selfConsumptionRate * 100).toFixed(1)),
       expectedSelfConsumption: expectedSelfConsumption,
+      exportedElectricity: exportedElectricity,
       gridIndependence: parseFloat(gridIndependence.toFixed(1)),
-      
+
       // D. Estimated PV self-consumption - With EESS
       batteryCapacity: batteryCapacity,
       expectedSelfConsumptionWithBattery: expectedSelfConsumption,
-      gridIndependenceWithBattery: parseFloat(gridIndependence.toFixed(1))
+      gridIndependenceWithBattery: parseFloat(gridIndependence.toFixed(1)),
     };
   } catch (error) {
-    console.error('Error in calculateSolarOutput:', error);
+    console.error("Error in calculateSolarOutput:", error);
     return null;
   }
-} 
+}

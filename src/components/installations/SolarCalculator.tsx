@@ -149,6 +149,9 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
 
     setLoading(true);
     try {
+      // Round orientation to nearest 5 before sending to API
+      const roundedOrientation = Math.round(orientation / 5) * 5;
+      
       const response = await fetch('/api/solar-calculator/calculate', {
         method: 'POST',
         headers: {
@@ -158,7 +161,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
           pvOutput,
           postcode,
           slope,
-          orientation,
+          orientation: roundedOrientation,
           shadeFactor,
           occupancyType,
           annualConsumption,
@@ -178,7 +181,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
         pvOutput,
         roofDetails: {
           type: roofType,
-          orientation,
+          orientation: roundedOrientation,
           slope,
           shadeFactor,
         },
@@ -270,12 +273,11 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
                   <Slider
                     value={[orientation]}
                     onValueChange={(values) => {
-                      // const rounded = Math.round(values[0] / 5) * 5;
                       setOrientation(values[0]);
                     }}
-                    min={0}
-                    max={175}
-                    step={5}
+                    min={-180}
+                    max={180}
+                    step={1}
                   />
                   <Input
                     type="number"
@@ -285,18 +287,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
                       if (!isNaN(value)) {
                         // Clamp value between -180 and 180
                         value = Math.max(-180, Math.min(180, value));
-                        // Round to nearest 5
-                        // const rounded = Math.round(value / 5) * 5;
                         setOrientation(value);
-                      }
-                    }}
-                    onBlur={(e) => {
-                      // Ensure the displayed value is rounded on blur
-                      let value = Number(e.target.value);
-                      if (!isNaN(value)) {
-                        value = Math.max(-180, Math.min(180, value));
-                        const rounded = Math.round(value / 5) * 5;
-                        setOrientation(rounded);
                       }
                     }}
                     className="w-20"

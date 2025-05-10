@@ -261,9 +261,21 @@ export default function NewInstallationPage() {
       }
 
       // Create installation - transform data to match the server schema
+      console.log('Submitting data with roofDetails:', [
+        {
+          type: formData.installation.roofDetails.type,
+          orientation: formData.installation.roofDetails.orientation,
+          slope: formData.installation.roofDetails.slope,
+          shadeFactor: formData.installation.roofDetails.shadeFactor,
+          pvOutput: formData.installation.totalPVOutput
+        }
+      ]);
+      
       const installationResponse = await fetch('/api/installations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           customerId,
           addressId: selectedAddressId ? parseInt(selectedAddressId) : undefined,
@@ -271,14 +283,22 @@ export default function NewInstallationPage() {
           zone: formData.installation.zone || '',
           totalPVOutput: formData.installation.totalPVOutput,
           annualACOutput: formData.installation.annualACOutput,
-          roofDetails: {
-            type: formData.installation.roofDetails.type,
-            orientation: formData.installation.roofDetails.orientation,
-            slope: formData.installation.roofDetails.slope,
-            shadeFactor: formData.installation.roofDetails.shadeFactor
-          },
+          roofDetails: [
+            {
+              type: formData.installation.roofDetails.type,
+              orientation: formData.installation.roofDetails.orientation,
+              slope: formData.installation.roofDetails.slope,
+              shadeFactor: formData.installation.roofDetails.shadeFactor,
+              pvOutput: formData.installation.totalPVOutput
+            }
+          ],
           // Convert other calculation result fields to JSON for storage
-          results: formData.installation.results
+          results: formData.installation.results,
+          occupancyArchetype: formData.installation.occupancyArchetype,
+          annualConsumption: formData.installation.annualElectricityConsumption,
+          batteryCapacity: formData.installation.batteryCapacity,
+          selfConsumption: formData.installation.expectedSelfConsumption,
+          gridIndependence: formData.installation.gridIndependence
         }),
       });
 
