@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import InstallationForm from '@/components/solar-calculator/InstallationForm';
-import SolarCalculator from '@/components/installations/SolarCalculator';
+import SolarCalculator from '@/components/solar-calculator/SolarCalculator';
 
 export default function SolarCalculatorPage() {
   const [postcode, setPostcode] = useState('');
@@ -20,6 +20,7 @@ export default function SolarCalculatorPage() {
         onCalculate={(results) => setCalculationResults(results)} 
       /> */}
       <InstallationForm />
+      {/* <SolarCalculator /> */}
     </div>
   );
 } 

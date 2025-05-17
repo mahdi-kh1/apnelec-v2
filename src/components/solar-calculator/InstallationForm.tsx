@@ -53,6 +53,7 @@ interface RoofCalculationResult {
   zone: string;
   kwhPerKwp?: number;
   roofType: string;
+  amountOfRadiation?: number;
 }
 
 export default function InstallationForm() {
@@ -195,6 +196,7 @@ export default function InstallationForm() {
       // Calculate total outputs
       const totalPVOutput = formData.roofs.reduce((sum, roof) => sum + roof.pvOutput, 0);
       const totalAnnualOutput = roofCalculations.reduce((sum, result) => sum + result.annualACOutput, 0);
+      const totalRadiation = roofCalculations.reduce((sum, result) => sum + (result.amountOfRadiation || 0), 0) / roofCalculations.length;
       
       // Create a customer first
       const customerResponse = await fetch('/api/customers', {
@@ -218,25 +220,19 @@ export default function InstallationForm() {
       const customerData = await customerResponse.json();
       
       // Now save the installation with the calculation results
-      // Skip separate address creation and include the address in the installation directly
       const installResponse = await fetch('/api/installations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          // Link to customer
           customerId: customerData.id,
-          
-          // Address data - this will create the address correctly in the backend
           postcode: formData.postcode,
           street: formData.street,
           city: formData.city,
           telephone: formData.telephone,
           buildingUse: formData.buildingUse,
           propertyType: formData.propertyType,
-          
-          // Roof data
           roofDetails: formData.roofs.map(roof => ({
             orientation: roof.orientation,
             slope: roof.slope,
@@ -244,8 +240,6 @@ export default function InstallationForm() {
             pvOutput: roof.pvOutput,
             type: roof.type
           })),
-          
-          // Add occupancy data
           occupancyArchetype: 'unknown',
           annualConsumption: 3500
         })
@@ -265,6 +259,7 @@ export default function InstallationForm() {
           totalPVOutput: totalPVOutput,
           annualACOutput: totalAnnualOutput,
           zone: roofCalculations[0]?.zone || 'Unknown',
+          amountOfRadiation: totalRadiation,
           results: formData.roofs.map((roof, index) => ({
             type: roof.type,
             orientation: roof.orientation,
@@ -272,7 +267,8 @@ export default function InstallationForm() {
             shadeFactor: roof.shadeFactor,
             result: {
               pvOutput: roof.pvOutput,
-              annualOutput: roofCalculations[index]?.annualACOutput || 0
+              annualOutput: roofCalculations[index]?.annualACOutput || 0,
+              amountOfRadiation: roofCalculations[index]?.amountOfRadiation || 0
             }
           }))
         },
@@ -632,9 +628,10 @@ export default function InstallationForm() {
                           </div>
                           <div>
                             <h4 className="text-lg font-medium mb-2">Installation Details</h4>
-                            <p className="mb-1"><span className="font-medium">Total PV Output:</span> {results.installation.totalPVOutput} kWp</p>
-                            <p className="mb-1"><span className="font-medium">Annual AC Output:</span> {results.installation.annualACOutput} kWh</p>
+                            <p className="mb-1"><span className="font-medium">Total PV Output:</span> {results.installation.totalPVOutput.toFixed(1)} kWp</p>
+                            <p className="mb-1"><span className="font-medium">Annual AC Output:</span> {results.installation.annualACOutput.toFixed(1)} kWh</p>
                             <p className="mb-1"><span className="font-medium">Zone:</span> {results.installation.zone}</p>
+                            <p className="mb-1"><span className="font-medium">Solar Radiation:</span> {results.installation.amountOfRadiation.toFixed(1)}%</p>
                           </div>
                         </div>
                         
@@ -650,6 +647,7 @@ export default function InstallationForm() {
                                 <th className="px-4 py-2 text-left">Shade Factor</th>
                                 <th className="px-4 py-2 text-left">PV Output</th>
                                 <th className="px-4 py-2 text-left">Annual Output</th>
+                                <th className="px-4 py-2 text-left">Radiation</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -660,8 +658,9 @@ export default function InstallationForm() {
                                   <td className="px-4 py-2">{roof.orientation}°</td>
                                   <td className="px-4 py-2">{roof.slope}°</td>
                                   <td className="px-4 py-2">{roof.shadeFactor}%</td>
-                                  <td className="px-4 py-2">{roof.result.pvOutput} kWp</td>
-                                  <td className="px-4 py-2">{roof.result.annualOutput} kWh</td>
+                                  <td className="px-4 py-2">{roof.result.pvOutput.toFixed(1)} kWp</td>
+                                  <td className="px-4 py-2">{roof.result.annualOutput.toFixed(1)} kWh</td>
+                                  <td className="px-4 py-2">{roof.result.amountOfRadiation.toFixed(1)}%</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -670,13 +669,13 @@ export default function InstallationForm() {
                         
                         <div className="mt-6 flex flex-col sm:flex-row gap-4">
                           <Button asChild>
-                          <a 
-                            href={results.pdfPath} 
-                            target="_blank" 
+                            <a 
+                              href={results.pdfPath} 
+                              target="_blank" 
                               rel="noopener noreferrer"
-                          >
-                            Download PDF
-                          </a>
+                            >
+                              Download PDF
+                            </a>
                           </Button>
                           <Button 
                             variant="outline" 
