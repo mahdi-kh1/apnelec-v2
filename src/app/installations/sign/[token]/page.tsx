@@ -56,6 +56,7 @@ export default function SignInstallationPage({ params }: { params: Promise<{ tok
         const networkResponse = await fetch('/api/network-info');
         if (networkResponse.ok) {
           const networkData = await networkResponse.json();
+          // console.log("networkData",networkData);
           setNetworkInfo(networkData);
         }
       } catch (error) {
@@ -141,7 +142,7 @@ export default function SignInstallationPage({ params }: { params: Promise<{ tok
   }
   
   return (
-    <div className="container mx-auto py-8">
+    <div className="dark:bg-gray-800 py-8 min-h-screen flex justify-center items-center">
       <Card className="p-6">
         <h2 className="text-2xl font-bold mb-6">Sign Installation Contract</h2>
         
@@ -182,7 +183,7 @@ export default function SignInstallationPage({ params }: { params: Promise<{ tok
           </button>
           
           {showDetails && networkInfo && (
-            <div className="mt-2 p-4 bg-gray-50 rounded-md">
+            <div className="mt-2 p-4 bg-gray-50 rounded-md dark:text-gray-600">
               <div className="flex items-center mb-2">
                 <Info className="h-4 w-4 mr-2 text-blue-500" />
                 <span className="text-sm text-gray-600">This information will be recorded with your signature</span>
