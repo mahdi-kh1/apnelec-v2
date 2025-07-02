@@ -10,6 +10,7 @@ export interface SolarCalculationInputs {
   shadeFactor: number; // percentage
   occupancyType: "home_all_day" | "in_half_day" | "out_all_day" | "unknown";
   annualConsumption: number; // kWh
+  batteryCapacity?: number; // kWh
 }
 
 export interface SolarCalculationResult {
@@ -559,13 +560,15 @@ async function getMGD003Data(
 async function calculateSelfConsumption(
   annualConsumption: number,
   annualACOutput: number,
-  occupancyType: string
-): Promise<number> {
+  occupancyType: string,
+  batteryCapacity: number = 0
+): Promise<{ selfConsumptionRate: number; selfConsumptionWithBattery: number }> {
   try {
     console.log(`--input:`, {
       annualConsumption,
       annualACOutput,
       occupancyType,
+      batteryCapacity,
     });
     // Get the appropriate column from the lookup table based on occupancy type
     let occupancyCategory: string;
@@ -620,7 +623,7 @@ async function calculateSelfConsumption(
     } else if (annualACOutput < 600) {
       generationBand = "300 kWh to 599 kWh";
     } else if (annualACOutput < 900) {
-      generationBand = "600 kWh to 899 kWh";
+      generationBand = "900 kWh to 899 kWh";
     } else if (annualACOutput < 1200) {
       generationBand = "900 kWh to 1,199 kWh";
     } else if (annualACOutput < 1500) {
@@ -674,22 +677,22 @@ async function calculateSelfConsumption(
       // Find the header row for the correct occupancy type
       let headerRowIndex = -1;
       let pvOnlyColIndex = -1;
+      let batteryColIndex = -1;
       let foundSection = false;
       let selfConsumptionPercentage = 0;
+      let selfConsumptionWithBatteryPercentage = 0;
 
       console.log(
         `Searching for section with occupancy: ${occupancyCategory} and consumption band: ${consumptionBand}`
       );
 
       // Construct the exact section header we're looking for
-      // Occupancy: Home all day. Annual electricity consumption: 3,500 kWh to 3,999 kWh
       const sectionHeader = `Occupancy: ${occupancyCategory}. Annual electricity consumption: ${consumptionBand}`;
       console.log(`Looking for section header: ${sectionHeader}`);
 
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         if (line.includes(sectionHeader)) {
-          // Found the exact section header
           headerRowIndex = i + 2; // Skip the header line and the battery capacity header line
           foundSection = true;
           console.log(`Found exact section header at line ${i}`);
@@ -703,15 +706,17 @@ async function calculateSelfConsumption(
       }
 
       if (foundSection && headerRowIndex !== -1) {
-        // Find the column index for 'PV Only' in the header row
+        // Find the column indices for 'PV' and 'Battery' in the header row
         const headerRow = lines[headerRowIndex].split(",");
         console.log(`Header row content: ${headerRow.join("|")}`);
 
         for (let j = 0; j < headerRow.length; j++) {
           if (headerRow[j].trim() === "PV") {
             pvOnlyColIndex = j;
-            console.log(`Found 'PV Only' column at index ${j}`);
-            break;
+            console.log(`Found 'PV' column at index ${j}`);
+          } else if (headerRow[j].trim() === "Battery") {
+            batteryColIndex = j;
+            console.log(`Found 'Battery' column at index ${j}`);
           }
         }
 
@@ -719,7 +724,7 @@ async function calculateSelfConsumption(
           console.log("Could not find 'PV' column in header row");
         }
 
-        // Now, search for the generation band row and get the value from the found column
+        // Now, search for the generation band row and get the values from the found columns
         console.log(`Searching for generation band: ${generationBand}`);
 
         // Skip the "Annual generation from solar PV system, kWh" prefix when searching
@@ -754,7 +759,7 @@ async function calculateSelfConsumption(
             values.push(value.trim());
 
             console.log(`Parsed row values: ${JSON.stringify(values)}`);
-            let targetOccurrence = 1; // مقدار پیش‌فرض
+            let targetOccurrence = 1; // Default value
 
             if (occupancyCategory === "Home all day") {
               targetOccurrence = 1;
@@ -766,84 +771,53 @@ async function calculateSelfConsumption(
 
             let occurrenceCount = 0;
             selfConsumptionPercentage = 0;
+            selfConsumptionWithBatteryPercentage = 0;
 
             for (let i = 0; i < values.length; i++) {
               if (values[i].trim() === generationBand) {
                 occurrenceCount++;
                 if (occurrenceCount === targetOccurrence) {
-                  const pvOnlyColIndex = i + 1;
+                  // Get PV only value
                   if (pvOnlyColIndex !== -1 && values[pvOnlyColIndex]) {
-                    console.log(`--pvOnlyColIndex:`, pvOnlyColIndex);
                     const rawValue = values[pvOnlyColIndex].trim();
-                    console.log(`Raw value from CSV: ${rawValue}`);
-                    // First clean the value of any quotes or extra spaces
                     const cleanValue = rawValue.replace(/["'\s]/g, "");
-                    console.log(`Cleaned value: ${cleanValue}`);
-                    // Now extract just the number before the % sign
                     const match = cleanValue.match(/^([\d.]+)%?$/);
                     if (match) {
                       selfConsumptionPercentage = parseFloat(match[1]);
-                      console.log(
-                        `Successfully parsed percentage: ${selfConsumptionPercentage}%`
-                      );
-                    } else {
-                      console.log(
-                        `Failed to parse percentage from value: ${cleanValue}`
-                      );
                     }
                   }
-                  break; // بعد از پیدا کردن occurrence مورد نظر، از حلقه خارج شو
+
+                  // Get battery value if battery capacity is provided
+                  if (batteryCapacity > 0 && batteryColIndex !== -1 && values[batteryColIndex]) {
+                    const rawValue = values[batteryColIndex].trim();
+                    const cleanValue = rawValue.replace(/["'\s]/g, "");
+                    const match = cleanValue.match(/^([\d.]+)%?$/);
+                    if (match) {
+                      selfConsumptionWithBatteryPercentage = parseFloat(match[1]);
+                    }
+                  } else {
+                    // If no battery or no battery column found, use PV only value
+                    selfConsumptionWithBatteryPercentage = selfConsumptionPercentage;
+                  }
+                  break;
                 }
               }
             }
-
-            // if (pvOnlyColIndex !== -1 && values[pvOnlyColIndex]) {
-            //   console.log(`--pvOnlyColIndex:`, pvOnlyColIndex);
-            //   const rawValue = values[pvOnlyColIndex].trim();
-            //   console.log(`Raw value from CSV: ${rawValue}`);
-            //   // First clean the value of any quotes or extra spaces
-            //   const cleanValue = rawValue.replace(/["'\s]/g, "");
-            //   console.log(`Cleaned value: ${cleanValue}`);
-            //   // Now extract just the number before the % sign
-            //   const match = cleanValue.match(/^([\d.]+)%?$/);
-            //   if (match) {
-            //     selfConsumptionPercentage = parseFloat(match[1]);
-            //     console.log(`Successfully parsed percentage: ${selfConsumptionPercentage}%`);
-            //   } else {
-            //     console.log(`Failed to parse percentage from value: ${cleanValue}`);
-            //   }
-            // } else {
-            //   console.log(`Could not extract value from column ${pvOnlyColIndex}`);
-            //   console.log(`Available columns: ${values.length}`);
-            // }
-            break;
           }
         }
       }
 
-      if (foundSection && selfConsumptionPercentage > 0) {
+      if (foundSection && (selfConsumptionPercentage > 0 || selfConsumptionWithBatteryPercentage > 0)) {
         console.log(
-          `Found self-consumption percentage from lookup table: ${selfConsumptionPercentage}%`
+          `Found self-consumption percentages - PV Only: ${selfConsumptionPercentage}%, With Battery: ${selfConsumptionWithBatteryPercentage}%`
         );
-        // Calculate the maximum possible self-consumption (limited by annual consumption)
-        // const maxPossibleSelfConsumption = Math.min(
-        //   1,
-        //   annualConsumption / annualACOutput
-        // );
-        // console.log(
-        //   `Maximum possible self-consumption: ${
-        //     maxPossibleSelfConsumption * 100
-        //   }%`
-        // );
-        // Use the minimum of the two
-        const finalValue = selfConsumptionPercentage;
-        // maxPossibleSelfConsumption
-
-        console.log(`Final self-consumption value: ${finalValue}%`);
-        return finalValue;
+        return {
+          selfConsumptionRate: selfConsumptionPercentage,
+          selfConsumptionWithBattery: selfConsumptionWithBatteryPercentage
+        };
       } else {
         console.log(
-          "Could not find valid self-consumption percentage in lookup table"
+          "Could not find valid self-consumption percentages in lookup table"
         );
       }
     } catch (error) {
@@ -867,16 +841,25 @@ async function calculateSelfConsumption(
     const ratio = annualACOutput / annualConsumption;
 
     // If production exceeds consumption, cap self-consumption based on consumption
-    if (ratio > 1) {
-      // Maximum possible self-consumption (as a percentage of generation)
-      return annualConsumption / annualACOutput;
-    } else {
-      // For lower production, use the default consumption rate
-      return baseRate;
-    }
+    let selfConsumptionRate = ratio > 1 ? annualConsumption / annualACOutput : baseRate;
+
+    // Calculate battery boost factor (simple linear increase up to 30% additional self-consumption)
+    const maxBatteryBoost = 0.3; // Maximum 30% additional self-consumption
+    const batteryBoostFactor = Math.min(maxBatteryBoost, (batteryCapacity / 15.1) * maxBatteryBoost);
+    
+    // Apply battery boost to self-consumption rate
+    const selfConsumptionWithBattery = Math.min(1, selfConsumptionRate + batteryBoostFactor);
+
+    return {
+      selfConsumptionRate: selfConsumptionRate * 100,
+      selfConsumptionWithBattery: selfConsumptionWithBattery * 100
+    };
   } catch (error) {
     console.error("Error calculating self-consumption:", error);
-    return 0.3; // Default 30% as fallback
+    return {
+      selfConsumptionRate: 30, // Default 30% as fallback
+      selfConsumptionWithBattery: 30
+    };
   }
 }
 
@@ -924,9 +907,13 @@ export async function calculateSolarOutput(
       shadeFactor,
       occupancyType,
       annualConsumption,
+      batteryCapacity = 0,
     } = params;
 
-    console.log("Starting solar calculation with params:", params);
+    console.log("Starting solar calculation with params:", {
+      ...params,
+      batteryCapacity: `${batteryCapacity} kWh`
+    });
 
     // STEP 1: Get zone and region
     const zone = await getZoneFromPostcode(postcode);
@@ -1006,25 +993,35 @@ export async function calculateSolarOutput(
     console.log("Calculated annual output:", estimatedAnnualOutput);
 
     // STEP 5: Calculate self-consumption
-    const selfConsumptionRate = await calculateSelfConsumption(
+    console.log("Calculating self-consumption with battery capacity:", batteryCapacity, "kWh");
+    const selfConsumption = await calculateSelfConsumption(
       annualConsumption,
       estimatedAnnualOutput,
-      occupancyType
+      occupancyType,
+      batteryCapacity
     );
-    console.log("Calculated self-consumption rate:", selfConsumptionRate);
+    console.log("Self-consumption calculation results:", {
+      withoutBattery: `${selfConsumption.selfConsumptionRate.toFixed(1)}%`,
+      withBattery: `${selfConsumption.selfConsumptionWithBattery.toFixed(1)}%`,
+      batteryCapacity: `${batteryCapacity} kWh`,
+      improvement: `${(selfConsumption.selfConsumptionWithBattery - selfConsumption.selfConsumptionRate).toFixed(1)}%`
+    });
 
-    // STEP 6: Calculate with battery (if applicable)
-    const batteryCapacity = 0; // No battery in this calculation
-    const selfConsumptionWithBattery = selfConsumptionRate; // Same as without battery for now
-
-    // STEP 7: Calculate self-consumption values and grid independence
+    // STEP 6: Calculate self-consumption values and grid independence
     let expectedSelfConsumption = Math.round(
-      (estimatedAnnualOutput * selfConsumptionRate)/100
+      (estimatedAnnualOutput * selfConsumption.selfConsumptionRate) / 100
+    );
+
+    let expectedSelfConsumptionWithBattery = Math.round(
+      (estimatedAnnualOutput * selfConsumption.selfConsumptionWithBattery) / 100
     );
 
     // Ensure self-consumption doesn't exceed annual consumption
     if (expectedSelfConsumption > annualConsumption) {
       expectedSelfConsumption = annualConsumption;
+    }
+    if (expectedSelfConsumptionWithBattery > annualConsumption) {
+      expectedSelfConsumptionWithBattery = annualConsumption;
     }
 
     // Calculate exported electricity
@@ -1037,7 +1034,18 @@ export async function calculateSolarOutput(
       100,
       (expectedSelfConsumption / annualConsumption) * 100
     );
-    const gridIndependenceWithBattery = gridIndependence; // Same as without battery for now
+
+    const gridIndependenceWithBattery = Math.min(
+      100,
+      (expectedSelfConsumptionWithBattery / annualConsumption) * 100
+    );
+
+    console.log("Battery impact on grid independence:", {
+      withoutBattery: `${gridIndependence.toFixed(1)}%`,
+      withBattery: `${gridIndependenceWithBattery.toFixed(1)}%`,
+      improvement: `${(gridIndependenceWithBattery - gridIndependence).toFixed(1)}%`,
+      batteryCapacity: `${batteryCapacity} kWh`
+    });
 
     // Convert occupancy type to more readable format
     let occupancyArchetype: string;
@@ -1057,8 +1065,10 @@ export async function calculateSolarOutput(
     }
 
     console.log("Expected self-consumption:", expectedSelfConsumption);
+    console.log("Expected self-consumption with battery:", expectedSelfConsumptionWithBattery);
     console.log("Exported electricity:", exportedElectricity);
     console.log("Grid independence:", gridIndependence);
+    console.log("Grid independence with battery:", gridIndependenceWithBattery);
 
     return {
       // A. Installation data
@@ -1076,15 +1086,15 @@ export async function calculateSolarOutput(
       // C. Estimated PV self-consumption - PV Only
       occupancyArchetype: occupancyArchetype,
       annualElectricityConsumption: annualConsumption,
-      selfConsumptionRate: parseFloat(selfConsumptionRate.toFixed(1)),
+      selfConsumptionRate: parseFloat(selfConsumption.selfConsumptionRate.toFixed(1)),
       expectedSelfConsumption: expectedSelfConsumption,
       exportedElectricity: exportedElectricity,
       gridIndependence: parseFloat(gridIndependence.toFixed(1)),
 
       // D. Estimated PV self-consumption - With EESS
       batteryCapacity: batteryCapacity,
-      expectedSelfConsumptionWithBattery: expectedSelfConsumption,
-      gridIndependenceWithBattery: parseFloat(gridIndependence.toFixed(1)),
+      expectedSelfConsumptionWithBattery: expectedSelfConsumptionWithBattery,
+      gridIndependenceWithBattery: parseFloat(gridIndependenceWithBattery.toFixed(1)),
     };
   } catch (error) {
     console.error("Error in calculateSolarOutput:", error);

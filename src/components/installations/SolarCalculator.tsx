@@ -48,6 +48,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
   const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
   const [occupancyType, setOccupancyType] = useState<string>('unknown');
   const [annualConsumption, setAnnualConsumption] = useState<number>(3500);
+  const [batteryCapacity, setBatteryCapacity] = useState<number>(0);
   const [results, setResults] = useState<any>(null);
 
   const handleGetZone = useCallback(async () => {
@@ -147,6 +148,8 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
       return;
     }
 
+    console.log('Battery Capacity:', batteryCapacity, 'kWh');
+
     setLoading(true);
     try {
       // Round orientation to nearest 5 before sending to API
@@ -165,6 +168,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
           shadeFactor,
           occupancyType,
           annualConsumption,
+          batteryCapacity,
         }),
       });
 
@@ -174,6 +178,12 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
       }
       
       const calculationResults = await response.json();
+      console.log('Calculation results with battery:', {
+        batteryCapacity,
+        expectedSelfConsumptionWithBattery: calculationResults.expectedSelfConsumptionWithBattery,
+        gridIndependenceWithBattery: calculationResults.gridIndependenceWithBattery
+      });
+      
       setResults(calculationResults);
       
       onCalculate({
@@ -379,6 +389,19 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
               </div>
 
               <div>
+                <Label>Battery Capacity (kWh)</Label>
+                <Input
+                  type="number"
+                  value={batteryCapacity}
+                  onChange={(e) => setBatteryCapacity(Number(e.target.value))}
+                  min={0}
+                  max={15.1}
+                  step={0.1}
+                  placeholder="Enter battery capacity"
+                />
+              </div>
+
+              <div>
                 <Label>Zone</Label>
                 <Input value={zone} readOnly />
               </div>
@@ -491,7 +514,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>Assumed Usable Capacity of Electrical Energy Storage Device</Label>
-                      <Input value={`${results.batteryCapacity} kWh`} readOnly />
+                      <Input value={`${batteryCapacity} kWh`} readOnly />
                     </div>
                     <div>
                       <Label>Expected Solar PV Self-Consumption (With EESS)</Label>
