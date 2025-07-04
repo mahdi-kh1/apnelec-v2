@@ -56,7 +56,7 @@ export default function SignInstallationPage({ params }: { params: Promise<{ tok
         const networkResponse = await fetch('/api/network-info');
         if (networkResponse.ok) {
           const networkData = await networkResponse.json();
-          // console.log("networkData",networkData);
+          console.log("networkData",networkData);
           setNetworkInfo(networkData);
         }
       } catch (error) {

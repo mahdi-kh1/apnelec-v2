@@ -179,6 +179,7 @@ export default function SolarCalculator({ postcode, onCalculate }: SolarCalculat
       
       const calculationResults = await response.json();
       console.log('Calculation results with battery:', {
+        calculationResults,
         batteryCapacity,
         expectedSelfConsumptionWithBattery: calculationResults.expectedSelfConsumptionWithBattery,
         gridIndependenceWithBattery: calculationResults.gridIndependenceWithBattery

@@ -17,12 +17,14 @@ export async function GET(request: NextRequest) {
     // Get MAC address of the server (as a fallback)
     let macAddress = "unknown";
     const nets = networkInterfaces();
-    // console.log("nets", nets,ipAddress);
+    console.log("nets", nets);
     for (const name of Object.keys(nets)) {
       const net = nets[name];
+      console.log("net", net);
       if (net) {
         for (const netInfo of net) {
-          if (netInfo.mac && netInfo.mac !== "00:00:00:00:00:00") {
+          console.log("netInfo",netInfo);
+          if ( netInfo.family === 'IPv4' && netInfo.mac && netInfo.mac !== "00:00:00:00:00:00") {
             macAddress = netInfo.mac;
             ipAddress = netInfo.address;
             break;

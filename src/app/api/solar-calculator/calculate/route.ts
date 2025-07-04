@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
       orientation,
       shadeFactor,
       occupancyType,
-      annualConsumption
+      annualConsumption,
+      batteryCapacity
     } = body as SolarCalculationInputs;
 
     // Validate required fields
@@ -69,7 +70,8 @@ export async function POST(request: NextRequest) {
       orientation,
       shadeFactor,
       occupancyType,
-      annualConsumption
+      annualConsumption,
+      batteryCapacity
     });
 
     if (!result) {
